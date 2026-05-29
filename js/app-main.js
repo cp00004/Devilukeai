@@ -81,7 +81,7 @@ async function syncFromCloud() {
       }
       _saveTotalMsgsMap(local);
     }
-  } catch {}
+  } catch(e) { console.error("syncFromCloud failed:", e); }
 }
 
 async function syncToCloud() {
@@ -100,7 +100,7 @@ async function syncToCloud() {
         cloudBots = (Array.isArray(rawBots) ? rawBots : []).filter(b => b && b.id);
         cloudMsgs = typeof record.totalMsgs === "object" ? record.totalMsgs : {};
       }
-    } catch {}
+    } catch(e) { console.error("syncToCloud fetch inner:", e); }
     const localBots = getCustomCharacters().map(b => ({ ...b, updatedAt: Date.now() }));
     const mergedBots = _cloudMergeBots(cloudBots, localBots);
     const mergedMsgs = { ...cloudMsgs };
@@ -113,7 +113,7 @@ async function syncToCloud() {
       headers: { "Content-Type": "application/json", "X-Master-Key": JSONBIN_API_KEY },
       body: JSON.stringify({ characters: mergedBots, totalMsgs: mergedMsgs })
     });
-  } catch {}
+  } catch(e) { console.error("syncToCloud failed:", e); }
 }
 
 let currentCharId = 1;
@@ -1651,8 +1651,7 @@ function showInstallButton() {
 /* Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Init Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
 document.addEventListener("DOMContentLoaded", () => {
   loadSettings(); applySettings();   loadInterests();
-  loadCharacters();
-  syncFromCloud().then(() => { syncToCloud(); renderCharacters(); renderChatHistory(); }); loadUser();
+  loadCharacters(); loadUser();
   autoImportSettings();
 
   try { fetchCharacterImages(); } catch(e) {}
@@ -1661,10 +1660,18 @@ document.addEventListener("DOMContentLoaded", () => {
   checkPremiumStatus().then(() => { renderNavUser(); });
 
   initCategoryPills();
-  renderCharacters();
-  renderChatHistory();
   updateChatHeader();
   renderMessages();
+
+  // Sync cloud bots BEFORE rendering characters so all public bots appear immediately
+  syncFromCloud().then(() => {
+    syncToCloud();
+    renderCharacters();
+    renderChatHistory();
+  }).catch(() => {
+    renderCharacters();
+    renderChatHistory();
+  });
   initSearch();
   initCreateTagSearch();
   initCharsTagSidebar();
