@@ -1703,51 +1703,38 @@ async function translatePage(tl) {
 
   const texts = uncached.map(([t]) => t);
 
-  // 1) Google batch — fast, handles most texts in one call
-  try {
-    const r = await fetch(
-      "https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=" + tl + "&dt=t&q=" + encodeURIComponent(texts.join("\n"))
-    );
-    if (r.ok) {
-      const segs = (await r.json())[0];
-      if (segs.length === texts.length) {
-        for (let i = 0; i < texts.length; i++) {
-          const tv = (segs[i][0] || "").replace(/\n$/, "");
-          if (tv) _transCache[texts[i] + "|" + tl] = tv;
-        }
-      }
-    }
-  } catch {}
-
-  // 2) Parallel MyMemory — catches any texts the batch missed
-  const missing = texts.filter(t => !(t + "|" + tl in _transCache));
-  if (missing.length > 0) {
-    await Promise.all(missing.map(async text => {
+  // Fire ALL translations in parallel — Google first, MyMemory fallback
+  await Promise.all(texts.map(async text => {
+    let tv = "";
+    try {
+      const r = await fetch(
+        "https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=" + tl + "&dt=t&q=" + encodeURIComponent(text.slice(0, 500))
+      );
+      if (r.ok) tv = (await r.json())[0]?.map(s => s[0]).join("") || "";
+    } catch {}
+    if (!tv) {
       try {
         const r = await fetch(
           "https://api.mymemory.translated.net/get?q=" + encodeURIComponent(text.slice(0, 500)) + "&langpair=en|" + tl
         );
-        if (r.ok) {
-          const tv = (await r.json()).responseData?.translatedText;
-          if (tv && tv !== text) _transCache[text + "|" + tl] = tv;
-        }
+        if (r.ok) tv = (await r.json()).responseData?.translatedText || "";
       } catch {}
-    }));
-  }
+    }
+    if (tv) _transCache[text + "|" + tl] = tv;
+  }));
 
   _saveCache();
-  _applyTrans(entries, tl);
+  try { _applyTrans(entries, tl); } catch (e) { console.error("translatePage apply error:", e); }
   overlay.remove();
 }
 
 function _applyTrans(entries, tl) {
   for (const [orig, textNodes] of entries) {
     const t = _transCache[orig + "|" + tl];
-    if (t && t !== orig) {
-      for (const n of textNodes) {
-        n.nodeValue = n.nodeValue.replace(orig, t);
-        n.parentElement.setAttribute("data-translated", "1");
-      }
+    if (!t || t === orig) continue;
+    for (const n of textNodes) {
+      if (!n.parentElement) continue;
+      try { n.nodeValue = n.nodeValue.split(orig).join(t); n.parentElement.setAttribute("data-translated", "1"); } catch {}
     }
   }
   document.querySelectorAll("[placeholder]").forEach(el => {
