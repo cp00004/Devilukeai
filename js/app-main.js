@@ -1505,6 +1505,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initCreateTagSearch();
   initCharsTagSidebar();
   showInstallButton();
+  setTimeout(applySavedLanguage, 2000);
 
   // Admin section visibility
   const adminSection = document.getElementById("adminDataManagement");
@@ -1590,6 +1591,10 @@ window.addEventListener("pageshow", (e) => {
     renderMessages();
     initSearch();
     showInstallButton();
+    if (!window.__googleTranslateLoaded) {
+      window.__googleTranslateLoaded = true;
+    }
+    setTimeout(applySavedLanguage, 2000);
     const adminSection = document.getElementById("adminDataManagement");
     if (adminSection) adminSection.style.display = "block";
     const exportBtn = document.getElementById("exportDataBtn");
@@ -1674,22 +1679,47 @@ function filterLangs() {
 }
 window.filterLangs = filterLangs;
 
+function triggerTranslate(lang) {
+  const sb = document.querySelector(".goog-te-combo");
+  if (!sb) return false;
+  sb.value = lang;
+  ["change", "input", "click"].forEach(t =>
+    sb.dispatchEvent(new Event(t, { bubbles: true, cancelable: true }))
+  );
+  return true;
+}
+
+function waitForSelect(lang, maxAttempts = 20) {
+  let attempts = 0;
+  const retry = setInterval(() => {
+    attempts++;
+    if (triggerTranslate(lang)) {
+      clearInterval(retry);
+      return;
+    }
+    if (attempts >= maxAttempts) {
+      clearInterval(retry);
+    }
+  }, 500);
+}
+
 function setLanguage(lang) {
   localStorage.setItem("deviluke_ai_lang", lang);
   toggleLangDropdown();
-  setGoogleTranslateCookie(lang);
+  if (!triggerTranslate(lang)) {
+    waitForSelect(lang);
+  }
 }
 
-function setGoogleTranslateCookie(lang) {
-  const domain = location.hostname;
-  document.cookie = "googtrans=/en/" + lang + "; path=/; domain=" + domain;
-  if (lang === "en") {
-    document.cookie = "googtrans=; path=/; domain=" + domain + "; max-age=0";
+function applySavedLanguage() {
+  const saved = localStorage.getItem("deviluke_ai_lang");
+  if (saved && saved !== "en") {
+    waitForSelect(saved);
   }
-  location.reload();
 }
 
 window.setLanguage = setLanguage;
+window.applySavedLanguage = applySavedLanguage;
 
 document.addEventListener("click", (e) => {
   if (!e.target.closest(".lang-dropdown")) {
