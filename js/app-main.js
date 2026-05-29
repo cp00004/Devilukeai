@@ -119,6 +119,13 @@ async function syncFromCloud() {
       const local = getCustomCharacters();
       console.log("syncFromCloud: local has " + local.length + " custom bots");
       const merged = _cloudMergeBots(local, remoteBots);
+      // Preserve local imageUrl if cloud copy has none (e.g. from old stripping)
+      for (const lb of local) {
+        if (lb.imageUrl) {
+          const mb = merged.find(m => String(m.id) === String(lb.id));
+          if (mb && !mb.imageUrl) mb.imageUrl = lb.imageUrl;
+        }
+      }
       localStorage.setItem("deviluke_characters", JSON.stringify(merged));
       loadCharacters();
       console.log("syncFromCloud: merged " + merged.length + " bots saved to localStorage");
