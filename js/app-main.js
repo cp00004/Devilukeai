@@ -1692,9 +1692,11 @@ document.addEventListener("DOMContentLoaded", () => {
     syncToCloud();
     renderCharacters();
     renderChatHistory();
+    if (document.getElementById("myBotsGrid")) renderMyBots();
   }).catch(() => {
     renderCharacters();
     renderChatHistory();
+    if (document.getElementById("myBotsGrid")) renderMyBots();
   });
   initSearch();
   initCreateTagSearch();
