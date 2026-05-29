@@ -1660,6 +1660,8 @@ function importUserData(event) {
 /* --- Custom Translation System --- */
 let _transCache = {};
 const _TRANS_CACHE_KEY = "deviluke_tcache";
+let _transCurrentTl = "";
+let _transObserver = null;
 
 function _loadCache() {
   try { _transCache = JSON.parse(localStorage.getItem(_TRANS_CACHE_KEY) || "{}"); } catch { _transCache = {}; }
@@ -1679,6 +1681,8 @@ function _isTranslatable(node) {
 async function translatePage(tl) {
   if (tl === "en" || !tl) return;
   _loadCache();
+  _transCurrentTl = tl;
+  _startTransObserver();
 
   const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
     acceptNode: n => _isTranslatable(n) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT
@@ -1726,6 +1730,35 @@ async function translatePage(tl) {
   _saveCache();
   try { _applyTrans(entries, tl); } catch (e) { console.error("translatePage apply error:", e); }
   overlay.remove();
+}
+
+function _startTransObserver() {
+  if (_transObserver) return;
+  _transObserver = new MutationObserver(mutations => {
+    const tl = _transCurrentTl;
+    if (!tl) return;
+    for (const m of mutations) {
+      for (const node of m.addedNodes) {
+        const list = [];
+        if (node.nodeType === 3) { if (_isTranslatable(node)) list.push(node); }
+        else if (node.nodeType === 1) {
+          const w = document.createTreeWalker(node, NodeFilter.SHOW_TEXT, {
+            acceptNode: n => _isTranslatable(n) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT
+          });
+          while (w.nextNode()) list.push(w.currentNode);
+        }
+        for (const n of list) {
+          const t = n.nodeValue.trim();
+          const cached = _transCache[t + "|" + tl];
+          if (cached && cached !== t) {
+            n.nodeValue = n.nodeValue.split(t).join(cached);
+            n.parentElement?.setAttribute("data-translated", "1");
+          }
+        }
+      }
+    }
+  });
+  _transObserver.observe(document.body, { childList: true, subtree: true });
 }
 
 function _applyTrans(entries, tl) {
