@@ -6,7 +6,7 @@
   <script>if (new URLSearchParams(location.search).has("update")) { location.replace("index.html"); }</script>
   <title>Download — Deviluke AI</title>
   <meta name="description" content="Download the Deviluke AI app for Android. Bring all your characters, personas, and chats to your mobile device.">
-  <link rel="stylesheet" href="css/style.css?v=39">
+  <link rel="stylesheet" href="css/style.css?v=40">
   <link rel="icon" href="d.ai.png?v=2">
   <link rel="manifest" href="manifest.json">
   <style>
@@ -305,6 +305,7 @@
   <nav class="navbar">
     <div class="nav-inner">
       <span id="navUser"></span>
+      <span id="syncStatus"></span>
       <div class="lang-dropdown">
         <button class="lang-btn" onclick="toggleLangDropdown()" title="Change Language">🌐</button>
         <div class="lang-dropdown-menu" id="langDropdown">
@@ -448,7 +449,7 @@
     </div>
   </div>
 
-  <script src="js/app-main.js?v=39"></script>
+  <script src="js/app-main.js?v=40"></script>
   <script>
     // Apply accent color to the logo glow
     document.addEventListener("DOMContentLoaded", () => {

@@ -436,6 +436,28 @@ a {
   font-size: 0.8rem;
 }
 
+/* ─── Sync Status ─── */
+.sync-status {
+  display: inline-block;
+  font-size: 0.7rem;
+  margin-left: 10px;
+  padding: 2px 8px;
+  border-radius: 8px;
+  white-space: nowrap;
+}
+.sync-syncing {
+  color: var(--text-muted);
+  background: rgba(255,255,255,0.05);
+}
+.sync-ok {
+  color: #4ade80;
+  background: rgba(74,222,128,0.1);
+}
+.sync-error {
+  color: #f87171;
+  background: rgba(248,113,113,0.1);
+}
+
 /* ─── Chat Page ─── */
 .chat-page {
   display: flex;

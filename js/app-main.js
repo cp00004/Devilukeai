@@ -56,8 +56,18 @@ function _cloudMergeBots(local, remote) {
   return Object.values(map);
 }
 
+function updateSyncStatus(state) {
+  const el = document.getElementById("syncStatus");
+  if (!el) return;
+  if (state === "syncing") { el.textContent = "Syncing…"; el.className = "sync-status sync-syncing"; }
+  else if (state === "ok") { el.textContent = "Synced"; el.className = "sync-status sync-ok"; }
+  else if (state === "error") { el.textContent = "Sync error"; el.className = "sync-status sync-error"; }
+  else { el.textContent = ""; el.className = "sync-status"; }
+}
+
 async function syncFromCloud() {
   if (!isCloudSyncReady()) return;
+  updateSyncStatus("syncing");
   try {
     const r = await fetch("https://api.jsonbin.io/v3/b/" + JSONBIN_BIN_ID + "/latest", {
       headers: { "X-Master-Key": JSONBIN_API_KEY }
@@ -81,11 +91,13 @@ async function syncFromCloud() {
       }
       _saveTotalMsgsMap(local);
     }
-  } catch(e) { console.error("syncFromCloud failed:", e); }
+    updateSyncStatus("ok");
+  } catch(e) { console.error("syncFromCloud failed:", e); updateSyncStatus("error"); }
 }
 
 async function syncToCloud() {
   if (!isCloudSyncReady()) return;
+  updateSyncStatus("syncing");
   try {
     let cloudBots = [];
     let cloudMsgs = {};
@@ -108,12 +120,13 @@ async function syncToCloud() {
     for (const [id, count] of Object.entries(localMsgs)) {
       mergedMsgs[id] = Math.max(mergedMsgs[id] || 0, count);
     }
-    await fetch("https://api.jsonbin.io/v3/b/" + JSONBIN_BIN_ID, {
+    const putr = await fetch("https://api.jsonbin.io/v3/b/" + JSONBIN_BIN_ID, {
       method: "PUT",
       headers: { "Content-Type": "application/json", "X-Master-Key": JSONBIN_API_KEY },
       body: JSON.stringify({ characters: mergedBots, totalMsgs: mergedMsgs })
     });
-  } catch(e) { console.error("syncToCloud failed:", e); }
+    if (putr.ok) updateSyncStatus("ok");
+  } catch(e) { console.error("syncToCloud failed:", e); updateSyncStatus("error"); }
 }
 
 let currentCharId = 1;
