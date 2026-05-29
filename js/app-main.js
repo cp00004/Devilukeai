@@ -1591,7 +1591,9 @@ function handleImageFile(event) {
   const reader=new FileReader();
   reader.onload=async function(e){
     const dataUrl=e.target.result;
-    const compressed = file.type === "image/gif" ? dataUrl : await compressImage(dataUrl);
+    const isGif = file.type === "image/gif" || dataUrl.startsWith("data:image/gif");
+    const compressed = isGif ? dataUrl : await compressImage(dataUrl);
+    console.log("handleImageFile: type=" + file.type + " isGif=" + isGif + " size=" + (dataUrl.length / 1024).toFixed(1) + "KB");
     document.getElementById("charImageUrl").value=compressed;
     const preview=document.getElementById("imagePreview");
     preview.innerHTML=`<img src="${compressed}" alt="Preview">`;
