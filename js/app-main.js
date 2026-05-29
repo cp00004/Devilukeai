@@ -1505,7 +1505,6 @@ document.addEventListener("DOMContentLoaded", () => {
   initCreateTagSearch();
   initCharsTagSidebar();
   showInstallButton();
-  applySavedLanguage();
 
   // Admin section visibility
   const adminSection = document.getElementById("adminDataManagement");
@@ -1676,42 +1675,21 @@ function filterLangs() {
 window.filterLangs = filterLangs;
 
 function setLanguage(lang) {
-  const doSet = () => {
-    const selectBox = document.querySelector(".goog-te-combo");
-    if (selectBox) {
-      selectBox.value = lang;
-      selectBox.dispatchEvent(new Event("change"));
-      return true;
-    }
-    return false;
-  };
-  if (!doSet()) {
-    let attempts = 0;
-    const retry = setInterval(() => {
-      attempts++;
-      if (doSet() || attempts >= 10) clearInterval(retry);
-    }, 500);
-  }
   localStorage.setItem("deviluke_ai_lang", lang);
   toggleLangDropdown();
+  setGoogleTranslateCookie(lang);
 }
-window.setLanguage = setLanguage;
 
-function applySavedLanguage() {
-  const saved = localStorage.getItem("deviluke_ai_lang");
-  if (saved && saved !== "en") {
-    const retry = setInterval(() => {
-      const selectBox = document.querySelector(".goog-te-combo");
-      if (selectBox) {
-        selectBox.value = saved;
-        selectBox.dispatchEvent(new Event("change"));
-        clearInterval(retry);
-      }
-    }, 500);
-    setTimeout(() => clearInterval(retry), 10000);
+function setGoogleTranslateCookie(lang) {
+  const domain = location.hostname;
+  document.cookie = "googtrans=/en/" + lang + "; path=/; domain=" + domain;
+  if (lang === "en") {
+    document.cookie = "googtrans=; path=/; domain=" + domain + "; max-age=0";
   }
+  location.reload();
 }
-window.applySavedLanguage = applySavedLanguage;
+
+window.setLanguage = setLanguage;
 
 document.addEventListener("click", (e) => {
   if (!e.target.closest(".lang-dropdown")) {
