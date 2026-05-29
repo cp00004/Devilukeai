@@ -56,32 +56,56 @@ function _cloudMergeBots(local, remote) {
   return Object.values(map);
 }
 
-function updateSyncStatus(state) {
+function updateSyncStatus(state, msg) {
   const el = document.getElementById("syncStatus");
-  if (!el) return;
-  if (state === "syncing") { el.textContent = "Syncing…"; el.className = "sync-status sync-syncing"; }
-  else if (state === "ok") { el.textContent = "Synced"; el.className = "sync-status sync-ok"; }
-  else if (state === "error") { el.textContent = "Sync error"; el.className = "sync-status sync-error"; }
-  else { el.textContent = ""; el.className = "sync-status"; }
+  const ss = document.getElementById("syncStatusSettings");
+  if (state === "syncing") {
+    const text = msg || "Syncing…";
+    if (el) { el.textContent = text; el.className = "sync-status sync-syncing"; }
+    if (ss) ss.textContent = text;
+  } else if (state === "ok") {
+    const text = msg || "Synced";
+    if (el) { el.textContent = text; el.className = "sync-status sync-ok"; }
+    if (ss) ss.textContent = text;
+    setTimeout(() => { if (ss) ss.textContent = "✓ Synced"; }, 3000);
+  } else if (state === "error") {
+    const text = msg || "Sync error";
+    if (el) { el.textContent = text; el.className = "sync-status sync-error"; }
+    if (ss) ss.textContent = text;
+  } else {
+    if (el) { el.textContent = ""; el.className = "sync-status"; }
+    if (ss) ss.textContent = "";
+  }
 }
 
 async function syncFromCloud() {
-  if (!isCloudSyncReady()) return;
-  updateSyncStatus("syncing");
+  if (!isCloudSyncReady()) { console.warn("syncFromCloud: cloud not ready"); return; }
+  updateSyncStatus("syncing", "Downloading…");
+  console.log("syncFromCloud: starting fetch from JSONBin");
   try {
-    const r = await fetch("https://api.jsonbin.io/v3/b/" + JSONBIN_BIN_ID + "/latest", {
+    const url = "https://api.jsonbin.io/v3/b/" + JSONBIN_BIN_ID + "/latest";
+    console.log("syncFromCloud: GET", url);
+    const r = await fetch(url, {
       headers: { "X-Master-Key": JSONBIN_API_KEY }
     });
-    if (!r.ok) return;
+    if (!r.ok) {
+      console.warn("syncFromCloud: response not OK", r.status, r.statusText);
+      updateSyncStatus("error", "Download failed (" + r.status + ")");
+      return;
+    }
     const data = await r.json();
+    console.log("syncFromCloud: response received", data);
     const record = data.record || {};
     const rawBots = record.characters || record.bots || (Array.isArray(record) ? record : []);
     const remoteBots = (Array.isArray(rawBots) ? rawBots : []).filter(b => b && b.id);
+    console.log("syncFromCloud: found " + remoteBots.length + " remote bots");
     if (remoteBots.length) {
       const local = getCustomCharacters();
+      console.log("syncFromCloud: local has " + local.length + " custom bots");
       const merged = _cloudMergeBots(local, remoteBots);
       localStorage.setItem("deviluke_characters", JSON.stringify(merged));
       loadCharacters();
+      console.log("syncFromCloud: merged " + merged.length + " bots saved to localStorage");
     }
     const remoteMsgs = record.totalMsgs || record.interests || {};
     if (remoteMsgs && typeof remoteMsgs === "object") {
@@ -91,14 +115,16 @@ async function syncFromCloud() {
       }
       _saveTotalMsgsMap(local);
     }
-    updateSyncStatus("ok");
-  } catch(e) { console.error("syncFromCloud failed:", e); updateSyncStatus("error"); }
+    updateSyncStatus("ok", "Downloaded");
+  } catch(e) { console.error("syncFromCloud failed:", e); updateSyncStatus("error", "Error: " + e.message); }
 }
 
 async function syncToCloud() {
-  if (!isCloudSyncReady()) return;
-  updateSyncStatus("syncing");
+  if (!isCloudSyncReady()) { console.warn("syncToCloud: cloud not ready"); return; }
+  updateSyncStatus("syncing", "Uploading…");
+  console.log("syncToCloud: starting");
   try {
+    // First read current cloud data to avoid overwriting other users' bots
     let cloudBots = [];
     let cloudMsgs = {};
     try {
@@ -111,33 +137,86 @@ async function syncToCloud() {
         const rawBots = record.characters || record.bots || (Array.isArray(record) ? record : []);
         cloudBots = (Array.isArray(rawBots) ? rawBots : []).filter(b => b && b.id);
         cloudMsgs = typeof record.totalMsgs === "object" ? record.totalMsgs : {};
+        console.log("syncToCloud: cloud has " + cloudBots.length + " bots");
       }
-    } catch(e) { console.error("syncToCloud fetch inner:", e); }
-    const localBots = getCustomCharacters().map(b => ({ ...b, updatedAt: Date.now() }));
-    const mergedBots = _cloudMergeBots(cloudBots, localBots);
+    } catch(e) { console.warn("syncToCloud: could not read cloud, pushing local only", e.message); }
+
+    const localBots = getCustomCharacters();
+    console.log("syncToCloud: local custom bots count =", localBots.length);
+
+    const botsWithTime = localBots.map(b => ({ ...b, updatedAt: Date.now() }));
+    const mergedBots = _cloudMergeBots(cloudBots, botsWithTime);
     const mergedMsgs = { ...cloudMsgs };
     const localMsgs = _getTotalMsgsMap();
     for (const [id, count] of Object.entries(localMsgs)) {
       mergedMsgs[id] = Math.max(mergedMsgs[id] || 0, count);
     }
+
+    const body = JSON.stringify({ characters: mergedBots, totalMsgs: mergedMsgs });
+    console.log("syncToCloud: pushing " + mergedBots.length + " merged bots");
     const putr = await fetch("https://api.jsonbin.io/v3/b/" + JSONBIN_BIN_ID, {
       method: "PUT",
       headers: { "Content-Type": "application/json", "X-Master-Key": JSONBIN_API_KEY },
-      body: JSON.stringify({ characters: mergedBots, totalMsgs: mergedMsgs })
+      body: body
     });
-    if (putr.ok) updateSyncStatus("ok");
-  } catch(e) { console.error("syncToCloud failed:", e); updateSyncStatus("error"); }
+    if (putr.ok) {
+      console.log("syncToCloud: success");
+      updateSyncStatus("ok", "Uploaded " + mergedBots.length + " bots");
+    } else {
+      const errText = await putr.text().catch(() => "");
+      console.error("syncToCloud: PUT failed", putr.status, putr.statusText, errText);
+      updateSyncStatus("error", "Upload failed (" + putr.status + ")");
+    }
+  } catch(e) { console.error("syncToCloud failed:", e); updateSyncStatus("error", "Error: " + e.message); }
+}
+    const botsWithTime = localBots.map(b => ({ ...b, updatedAt: Date.now() }));
+    const localMsgs = _getTotalMsgsMap();
+    const body = JSON.stringify({ characters: botsWithTime, totalMsgs: localMsgs });
+    console.log("syncToCloud: PUT", body.substring(0, 200) + "...");
+    const putr = await fetch("https://api.jsonbin.io/v3/b/" + JSONBIN_BIN_ID, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", "X-Master-Key": JSONBIN_API_KEY },
+      body: body
+    });
+    if (putr.ok) {
+      console.log("syncToCloud: success");
+      updateSyncStatus("ok", "Uploaded " + localBots.length + " bots");
+    } else {
+      const errText = await putr.text().catch(() => "");
+      console.error("syncToCloud: PUT failed", putr.status, putr.statusText, errText);
+      updateSyncStatus("error", "Upload failed (" + putr.status + ")");
+    }
+  } catch(e) { console.error("syncToCloud failed:", e); updateSyncStatus("error", "Error: " + e.message); }
 }
 
 async function manualSync() {
-  const ss = document.getElementById("syncStatusSettings");
-  if (ss) ss.textContent = "Syncing…";
-  updateSyncStatus("syncing");
+  updateSyncStatus("syncing", "Full sync…");
+  console.log("manualSync: starting full sync");
   await syncFromCloud();
   await syncToCloud();
-  if (ss) ss.textContent = "Done!";
-  updateSyncStatus("ok");
-  setTimeout(() => { if (ss) ss.textContent = ""; }, 3000);
+  console.log("manualSync: complete");
+}
+
+async function testSyncConnection() {
+  const el = document.getElementById("syncStatusSettings");
+  if (el) el.textContent = "Testing…";
+  try {
+    const r = await fetch("https://api.jsonbin.io/v3/b/" + JSONBIN_BIN_ID + "/latest", {
+      headers: { "X-Master-Key": JSONBIN_API_KEY }
+    });
+    if (r.ok) {
+      const data = await r.json();
+      const bots = data.record?.characters || [];
+      if (el) el.textContent = "✓ Connected (" + bots.length + " bots in cloud)";
+      alert("Connection OK!\nBots in cloud: " + bots.length + "\n\nJSONBin ID: " + JSONBIN_BIN_ID.substring(0, 8) + "...\nAPI Key set: " + (JSONBIN_API_KEY ? "Yes" : "No"));
+    } else {
+      if (el) el.textContent = "Failed (" + r.status + ")";
+      alert("Connection failed! Status: " + r.status + "\n\nJSONBin ID: " + JSONBIN_BIN_ID.substring(0, 8) + "...\nAPI Key set: " + (JSONBIN_API_KEY ? "Yes" : "No"));
+    }
+  } catch(e) {
+    if (el) el.textContent = "Error: " + e.message;
+    alert("Connection error: " + e.message + "\n\nJSONBin ID: " + JSONBIN_BIN_ID.substring(0, 8) + "...\nAPI Key set: " + (JSONBIN_API_KEY ? "Yes" : "No"));
+  }
 }
 
 let currentCharId = 1;
@@ -271,8 +350,11 @@ function openSettings() {
         <input id="jsonbinId" type="text" placeholder="Bin ID" value="${binId.replace(/"/g,'&quot;')}" style="width:100%;padding:8px;border-radius:6px;background:var(--bg-primary);border:1px solid var(--border);color:var(--text-primary);font-size:0.85rem;font-family:inherit;outline:none;margin-bottom:6px;box-sizing:border-box">
         <input id="jsonbinKey" type="password" placeholder="API Key (X-Master-Key)" value="${binKey.replace(/"/g,'&quot;')}" style="width:100%;padding:8px;border-radius:6px;background:var(--bg-primary);border:1px solid var(--border);color:var(--text-primary);font-size:0.85rem;font-family:inherit;outline:none;box-sizing:border-box">
         <p style="font-size:0.75rem;color:var(--text-secondary);margin:6px 0 0;line-height:1.4">Free at jsonbin.io — create a bin, then paste its ID and your Master Key here. <br>Bots will sync across all your devices automatically.</p>
-        <button onclick="manualSync()" style="margin-top:10px;padding:8px 16px;border-radius:8px;border:1px solid var(--border);background:var(--bg-primary);color:var(--text-primary);cursor:pointer;font-size:0.85rem">🔄 Sync Now</button>
-        <span id="syncStatusSettings" style="margin-left:8px;font-size:0.8rem"></span>
+        <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+          <button onclick="manualSync()" style="padding:8px 16px;border-radius:8px;border:1px solid var(--border);background:var(--bg-primary);color:var(--text-primary);cursor:pointer;font-size:0.85rem">🔄 Sync Now</button>
+          <button onclick="testSyncConnection()" style="padding:8px 16px;border-radius:8px;border:1px solid var(--border);background:var(--bg-primary);color:var(--text-primary);cursor:pointer;font-size:0.85rem">🔌 Test Connection</button>
+        </div>
+        <span id="syncStatusSettings" style="display:block;margin-top:6px;font-size:0.8rem"></span>
       `;
       panel.appendChild(jb);
     }
@@ -1651,7 +1733,11 @@ function autoImportSettings() {
   const importFile = "userschangedsettings (1).json";
   fetch(importFile).then(r => { if (!r.ok) throw Error(); return r.json(); }).then(data => {
     if (data.settings) { settings = data.settings; saveSettings(); }
-    if (data.characters) localStorage.setItem("deviluke_characters", JSON.stringify(data.characters));
+    if (data.characters) {
+      const existing = getCustomCharacters();
+      const merged2 = _cloudMergeBots(existing, data.characters);
+      localStorage.setItem("deviluke_characters", JSON.stringify(merged2));
+    }
     if (data.chats) {
       const uid = getUserId();
       localStorage.setItem("deviluke_chats_" + uid, JSON.stringify(data.chats));
