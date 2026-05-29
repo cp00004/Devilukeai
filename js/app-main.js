@@ -1701,37 +1701,38 @@ async function translatePage(tl) {
   overlay.textContent = "Translating…";
   document.body.appendChild(overlay);
 
-  // Single batch request using newline separator
-  const batchStr = uncached.map(([t]) => t.slice(0, 500)).join("\n");
+  const texts = uncached.map(([t]) => t);
+
+  // 1) Google batch — fast, handles most texts in one call
   try {
     const r = await fetch(
-      "https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=" + tl + "&dt=t&q=" + encodeURIComponent(batchStr)
+      "https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=" + tl + "&dt=t&q=" + encodeURIComponent(texts.join("\n"))
     );
     if (r.ok) {
-      const d = await r.json();
-      const segs = d[0];
-      if (segs.length === uncached.length) {
-        for (let i = 0; i < uncached.length; i++) {
+      const segs = (await r.json())[0];
+      if (segs.length === texts.length) {
+        for (let i = 0; i < texts.length; i++) {
           const tv = (segs[i][0] || "").replace(/\n$/, "");
-          if (tv) _transCache[uncached[i][0] + "|" + tl] = tv;
+          if (tv) _transCache[texts[i] + "|" + tl] = tv;
         }
       }
     }
   } catch {}
 
-  // Fallback for any texts still missing from cache
-  for (const [text] of entries) {
-    if (text + "|" + tl in _transCache) continue;
-    try {
-      const r2 = await fetch(
-        "https://api.mymemory.translated.net/get?q=" + encodeURIComponent(text.slice(0, 500)) + "&langpair=en|" + tl
-      );
-      if (r2.ok) {
-        const d2 = await r2.json();
-        const tv = d2.responseData?.translatedText;
-        if (tv && tv !== text) _transCache[text + "|" + tl] = tv;
-      }
-    } catch {}
+  // 2) Parallel MyMemory — catches any texts the batch missed
+  const missing = texts.filter(t => !(t + "|" + tl in _transCache));
+  if (missing.length > 0) {
+    await Promise.all(missing.map(async text => {
+      try {
+        const r = await fetch(
+          "https://api.mymemory.translated.net/get?q=" + encodeURIComponent(text.slice(0, 500)) + "&langpair=en|" + tl
+        );
+        if (r.ok) {
+          const tv = (await r.json()).responseData?.translatedText;
+          if (tv && tv !== text) _transCache[text + "|" + tl] = tv;
+        }
+      } catch {}
+    }));
   }
 
   _saveCache();
