@@ -195,7 +195,7 @@
           ${bot.avatar || bot.name.charAt(0).toUpperCase()}
         </div>`;
         const tags = (bot.tags || []).slice(0,3).map(t => `<span class="my-bot-tag">${t}</span>`).join("");
-        const canEdit = currentUser && currentUser.name === "Cipher";
+        const canEdit = typeof isAdminUser === "function" && isAdminUser();
 
         return `
           <div class="my-bot-card" id="bot-card-${bot.id}">

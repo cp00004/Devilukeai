@@ -370,7 +370,7 @@ function openSettings() {
   renderColorSwatches();
   // Inject JSONBin fields — only visible to sync owner
   let jb = document.getElementById("jsonbinSettings");
-  const isOwner = currentUser && currentUser.name === "Cipher";
+  const isOwner = isAdminUser();
   if (!jb && isOwner) {
     const panel = document.querySelector(".settings-panel");
     if (panel) {
@@ -1636,7 +1636,7 @@ async function createCharacter() {
   if (editingCharId) {
     const customs = getCustomCharacters();
     const char = customs.find(c => c.id === editingCharId);
-    if (char && (!currentUser || currentUser.name !== "Cipher")) { alert("Only the bot owner can edit."); return; }
+    if (char && !isAdminUser()) { alert("Only the bot owner can edit."); return; }
     const idx = customs.findIndex(c => c.id === editingCharId);
     if (idx >= 0) {
       customs[idx].name = name;
@@ -1674,7 +1674,7 @@ function loadEditCharacter(id) {
   const customs = getCustomCharacters();
   const char = customs.find(c => c.id === id);
   if (!char) return;
-  if (!currentUser || currentUser.name !== "Cipher") { alert("Only the bot owner can edit characters."); return; }
+  if (!isAdminUser()) { alert("Only the bot owner can edit characters."); return; }
   editingCharId = id;
   document.getElementById("charName").value = char.name || "";
   document.getElementById("charDesc").value = char.description || "";
