@@ -136,6 +136,14 @@ async function syncToCloud() {
         const record = data.record || {};
         const rawBots = record.characters || record.bots || (Array.isArray(record) ? record : []);
         cloudBots = (Array.isArray(rawBots) ? rawBots : []).filter(b => b && b.id);
+        // Strip base64 images from cloud bots too (free JSONBin 100KB limit)
+        cloudBots = cloudBots.map(b => {
+          if (b.imageUrl && b.imageUrl.startsWith("data:")) {
+            const { imageUrl, ...rest } = b;
+            return { ...rest, _hadBase64Image: true };
+          }
+          return b;
+        });
         cloudMsgs = typeof record.totalMsgs === "object" ? record.totalMsgs : {};
         console.log("syncToCloud: cloud has " + cloudBots.length + " bots");
       }
@@ -144,7 +152,15 @@ async function syncToCloud() {
     const localBots = getCustomCharacters();
     console.log("syncToCloud: local custom bots count =", localBots.length);
 
-    const botsWithTime = localBots.map(b => ({ ...b, updatedAt: Date.now() }));
+    // Strip base64 images to stay under JSONBin free tier 100KB limit
+    const stripImage = (b) => {
+      if (b.imageUrl && b.imageUrl.startsWith("data:")) {
+        const { imageUrl, ...rest } = b;
+        return { ...rest, _hadBase64Image: true, updatedAt: Date.now() };
+      }
+      return { ...b, updatedAt: Date.now() };
+    };
+    const botsWithTime = localBots.map(stripImage);
     const mergedBots = _cloudMergeBots(cloudBots, botsWithTime);
     const mergedMsgs = { ...cloudMsgs };
     const localMsgs = _getTotalMsgsMap();
