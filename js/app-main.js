@@ -1635,6 +1635,8 @@ async function createCharacter() {
 
   if (editingCharId) {
     const customs = getCustomCharacters();
+    const char = customs.find(c => c.id === editingCharId);
+    if (char && (!currentUser || currentUser.name !== "Cipher")) { alert("Only the bot owner can edit."); return; }
     const idx = customs.findIndex(c => c.id === editingCharId);
     if (idx >= 0) {
       customs[idx].name = name;
@@ -1672,6 +1674,7 @@ function loadEditCharacter(id) {
   const customs = getCustomCharacters();
   const char = customs.find(c => c.id === id);
   if (!char) return;
+  if (!currentUser || currentUser.name !== "Cipher") { alert("Only the bot owner can edit characters."); return; }
   editingCharId = id;
   document.getElementById("charName").value = char.name || "";
   document.getElementById("charDesc").value = char.description || "";

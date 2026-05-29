@@ -195,6 +195,7 @@
           ${bot.avatar || bot.name.charAt(0).toUpperCase()}
         </div>`;
         const tags = (bot.tags || []).slice(0,3).map(t => `<span class="my-bot-tag">${t}</span>`).join("");
+        const canEdit = currentUser && currentUser.name === "Cipher";
 
         return `
           <div class="my-bot-card" id="bot-card-${bot.id}">
@@ -209,8 +210,8 @@
             </div>
             <div class="my-bot-card-actions">
               <a href="chat.html?char=${bot.id}" class="btn btn-primary my-bot-action-btn">Chat</a>
-              <a href="create.html?edit=${bot.id}" class="btn btn-secondary my-bot-action-btn">Edit</a>
-              <button class="btn my-bot-delete-btn" onclick="openDeleteModal(${bot.id}, '${bot.name.replace(/'/g,"\\'")}')">Delete</button>
+              ${canEdit ? `<a href="create.html?edit=${bot.id}" class="btn btn-secondary my-bot-action-btn">Edit</a>
+              <button class="btn my-bot-delete-btn" onclick="openDeleteModal(${bot.id}, '${bot.name.replace(/'/g,"\\'")}')">Delete</button>` : ""}
             </div>
           </div>
         `;
