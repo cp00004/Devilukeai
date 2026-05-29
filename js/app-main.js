@@ -169,25 +169,6 @@ async function syncToCloud() {
     }
   } catch(e) { console.error("syncToCloud failed:", e); updateSyncStatus("error", "Error: " + e.message); }
 }
-    const botsWithTime = localBots.map(b => ({ ...b, updatedAt: Date.now() }));
-    const localMsgs = _getTotalMsgsMap();
-    const body = JSON.stringify({ characters: botsWithTime, totalMsgs: localMsgs });
-    console.log("syncToCloud: PUT", body.substring(0, 200) + "...");
-    const putr = await fetch("https://api.jsonbin.io/v3/b/" + JSONBIN_BIN_ID, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json", "X-Master-Key": JSONBIN_API_KEY },
-      body: body
-    });
-    if (putr.ok) {
-      console.log("syncToCloud: success");
-      updateSyncStatus("ok", "Uploaded " + localBots.length + " bots");
-    } else {
-      const errText = await putr.text().catch(() => "");
-      console.error("syncToCloud: PUT failed", putr.status, putr.statusText, errText);
-      updateSyncStatus("error", "Upload failed (" + putr.status + ")");
-    }
-  } catch(e) { console.error("syncToCloud failed:", e); updateSyncStatus("error", "Error: " + e.message); }
-}
 
 async function manualSync() {
   updateSyncStatus("syncing", "Full sync…");
