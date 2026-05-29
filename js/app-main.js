@@ -14,10 +14,47 @@ const categories = ["for-you", "all"];
 const presetColors = ["#ef4444", "#ff6b6b", "#ff4500", "#ff0080", "#ff7f50", "#ffd700", "#00ff88", "#00bfff", "#8b5cf6"];
 
 /* --- JSONBin.io Cloud Sync --- */
-const JSONBIN_BIN_ID = localStorage.getItem("deviluke_jsonbin_id") || "";
-const JSONBIN_API_KEY = localStorage.getItem("deviluke_jsonbin_key") || "";
+const JSONBIN_BIN_ID = localStorage.getItem("deviluke_jsonbin_id") || "6a19cff0ddf5aa59f7757613";
+const JSONBIN_API_KEY = localStorage.getItem("deviluke_jsonbin_key") || "$2a$10$iZS8u8vmb5y/u/BFy/rul.3HAuiXy6bS8RFEJCQqx33eARkL8cXCq";
 
 function isCloudSyncReady() { return JSONBIN_BIN_ID && JSONBIN_API_KEY; }
+
+/* --- Shared total-message count for all bots (default + custom) --- */
+const _TOTAL_MSGS_KEY = "deviluke_total_msgs";
+function _getTotalMsgsMap() {
+  try { return JSON.parse(localStorage.getItem(_TOTAL_MSGS_KEY) || "{}"); } catch { return {}; }
+}
+function _saveTotalMsgsMap(map) {
+  localStorage.setItem(_TOTAL_MSGS_KEY, JSON.stringify(map));
+}
+function _incTotalMsgs(charId) {
+  const map = _getTotalMsgsMap();
+  const key = String(charId);
+  map[key] = (map[key] || 0) + 1;
+  _saveTotalMsgsMap(map);
+  return map[key];
+}
+function getTotalMsgs(charId) {
+  const map = _getTotalMsgsMap();
+  return map[String(charId)] || 0;
+}
+
+function _cloudMergeBots(local, remote) {
+  const now = Date.now();
+  const map = {};
+  for (const b of local) map[String(b.id)] = { ...b };
+  for (const b of remote) {
+    const id = String(b.id);
+    if (map[id]) {
+      if ((b.updatedAt || 0) > (map[id].updatedAt || 0)) {
+        map[id] = { ...b, updatedAt: now };
+      }
+    } else {
+      map[id] = { ...b, updatedAt: now };
+    }
+  }
+  return Object.values(map);
+}
 
 async function syncFromCloud() {
   if (!isCloudSyncReady()) return;
@@ -27,29 +64,51 @@ async function syncFromCloud() {
     });
     if (!r.ok) return;
     const data = await r.json();
-    const remote = data.record || [];
-    if (!remote.length) return;
-    const local = getCustomCharacters();
-    const merged = [...local];
-    for (const rBot of remote) {
-      const existing = merged.findIndex(b => b.id === rBot.id);
-      if (existing < 0) {
-        if (rBot.updatedAt) rBot.updatedAt = Date.now();
-        merged.push(rBot);
-      }
+    const record = data.record || {};
+    const remoteBots = (record.characters || (Array.isArray(record) ? record.filter(b => b && b.id) : [])).filter(b => b && b.id);
+    if (remoteBots.length) {
+      const local = getCustomCharacters();
+      const merged = _cloudMergeBots(local, remoteBots);
+      localStorage.setItem("deviluke_characters", JSON.stringify(merged));
+      loadCharacters();
     }
-    localStorage.setItem("deviluke_characters", JSON.stringify(merged));
+    if (record.totalMsgs) {
+      const local = _getTotalMsgsMap();
+      for (const [id, count] of Object.entries(record.totalMsgs)) {
+        local[id] = Math.max(local[id] || 0, count);
+      }
+      _saveTotalMsgsMap(local);
+    }
   } catch {}
 }
 
 async function syncToCloud() {
   if (!isCloudSyncReady()) return;
   try {
-    const bots = getCustomCharacters().map(b => ({ ...b, updatedAt: Date.now() }));
+    let cloudBots = [];
+    let cloudMsgs = {};
+    try {
+      const r = await fetch("https://api.jsonbin.io/v3/b/" + JSONBIN_BIN_ID + "/latest", {
+        headers: { "X-Master-Key": JSONBIN_API_KEY }
+      });
+      if (r.ok) {
+        const data = await r.json();
+        const record = data.record || {};
+        cloudBots = (record.characters || (Array.isArray(record) ? record.filter(b => b && b.id) : [])).filter(b => b && b.id);
+        cloudMsgs = record.totalMsgs || {};
+      }
+    } catch {}
+    const localBots = getCustomCharacters().map(b => ({ ...b, updatedAt: Date.now() }));
+    const mergedBots = _cloudMergeBots(cloudBots, localBots);
+    const mergedMsgs = { ...cloudMsgs };
+    const localMsgs = _getTotalMsgsMap();
+    for (const [id, count] of Object.entries(localMsgs)) {
+      mergedMsgs[id] = Math.max(mergedMsgs[id] || 0, count);
+    }
     await fetch("https://api.jsonbin.io/v3/b/" + JSONBIN_BIN_ID, {
       method: "PUT",
       headers: { "Content-Type": "application/json", "X-Master-Key": JSONBIN_API_KEY },
-      body: JSON.stringify(bots)
+      body: JSON.stringify({ characters: mergedBots, totalMsgs: mergedMsgs })
     });
   } catch {}
 }
@@ -175,8 +234,8 @@ function openSettings() {
   if (!jb) {
     const panel = document.querySelector(".settings-panel");
     if (panel) {
-      const binId = localStorage.getItem("deviluke_jsonbin_id") || "";
-      const binKey = localStorage.getItem("deviluke_jsonbin_key") || "";
+      const binId = localStorage.getItem("deviluke_jsonbin_id") || "6a19cff0ddf5aa59f7757613";
+      const binKey = localStorage.getItem("deviluke_jsonbin_key") || "$2a$10$iZS8u8vmb5y/u/BFy/rul.3HAuiXy6bS8RFEJCQqx33eARkL8cXCq";
       jb = document.createElement("div");
       jb.id = "jsonbinSettings";
       jb.style.cssText = "margin-top:16px;padding-top:16px;border-top:1px solid var(--border)";
@@ -610,6 +669,7 @@ function incrementLifetimeMsgCount(charId) {
   const key = 'deviluke_lifetime_msgs_' + getUserId() + '_' + charId;
   let count = getLifetimeMsgCount(charId) + 1;
   localStorage.setItem(key, String(count));
+  _incTotalMsgs(charId);
   return count;
 }
 
@@ -619,7 +679,7 @@ function renderCharacterCard(char) {
   if (!show) return "";
   const imgHtml = char.imageUrl ? `<img class="card-img" src="${char.imageUrl}" alt="${char.name}" onerror="this.outerHTML='<div class=\\'card-img\\' style=\\'display:flex;align-items:center;justify-content:center;font-size:3rem;background:var(--bg-hover)\\'> </div>'">` : `<div class="card-img" style="display:flex;align-items:center;justify-content:center;font-size:3rem;background:var(--bg-hover)"> </div>`;
   const starBadge = (activeCategory === "for-you") ? `<div style="position:absolute; top:8px; right:8px; background:#ffd700; color:#000; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:bold; box-shadow:0 2px 6px rgba(0,0,0,0.8); z-index:10;" title="Recommended for you">FY</div>` : "";
-  const realCount=getLifetimeMsgCount(char.id);
+  const sharedTotal=getTotalMsgs(char.id);
   const deleteBtn = char.isCustom ? `<button class="card-delete-btn" onclick="event.stopPropagation();if(confirm('Delete &quot;${char.name}&quot;?')){deleteCustomCharacter('${char.id}');location.reload()}">Delete</button>` : "";
   return `<div class="character-card" style="position:relative;" onclick="startChat(${typeof char.id==='number'?char.id:"'"+char.id+"'"})">
     ${starBadge}
@@ -633,7 +693,7 @@ function renderCharacterCard(char) {
     </div>
     <p class="description">${char.description}</p>
     <div class="tags">${char.tags.map(t=>`<span class="tag ${t==='nsfw'?'nsfw':''}">${t}</span>`).join("")}</div>
-    <div class="chat-count">${realCount} message${realCount!==1?'s':''}</div>
+    <div class="chat-count">${sharedTotal} message${sharedTotal!==1?'s':''} total</div>
   </div>`;
 }
 
@@ -877,11 +937,15 @@ function sendMessage() {
   const t=i.value.trim();i.value="";
   messages.push({role:"user",text:t,ts:Date.now()}); incrementLifetimeMsgCount(currentCharId);
   messages.push({role:"typing"});renderMessages();
-  saveCurrentChat(); // save user msg immediately so count updates even before bot replies
+  saveCurrentChat();
   const ch=getCharacter(currentCharId);
   getGroqResponse(messages,ch).then(reply=>{
     messages=messages.filter(m=>m.role!=="typing");
     messages.push({role:"bot",text:reply||"*They smile warmly, waiting for you to continue.*",ts:Date.now()});
+    renderMessages();saveCurrentChat();renderChatHistory();renderCharacters();
+  }).catch(err=>{
+    messages=messages.filter(m=>m.role!=="typing");
+    messages.push({role:"bot",text:`*Error: ${err.message}*`,ts:Date.now()});
     renderMessages();saveCurrentChat();renderChatHistory();renderCharacters();
   });
 }
@@ -895,6 +959,10 @@ function regenerateLast() {
   getGroqResponse(messages,ch).then(reply=>{
     messages=messages.filter(m=>m.role!=="typing");
     messages.push({role:"bot",text:reply||"*They smile warmly, waiting for you to continue.*",ts:Date.now()});
+    renderMessages();saveCurrentChat();renderChatHistory();renderCharacters();
+  }).catch(err=>{
+    messages=messages.filter(m=>m.role!=="typing");
+    messages.push({role:"bot",text:`*Error: ${err.message}*`,ts:Date.now()});
     renderMessages();saveCurrentChat();renderChatHistory();renderCharacters();
   });
 }
@@ -910,6 +978,10 @@ function continueChat() {
   getGroqResponse(messages,ch).then(reply=>{
     messages=messages.filter(m=>m.role!=="typing");
     messages.push({role:"bot",text:reply||"*They smile warmly, waiting for you to continue.*",ts:Date.now()});
+    renderMessages();saveCurrentChat();renderChatHistory();renderCharacters();
+  }).catch(err=>{
+    messages=messages.filter(m=>m.role!=="typing");
+    messages.push({role:"bot",text:`*Error: ${err.message}*`,ts:Date.now()});
     renderMessages();saveCurrentChat();renderChatHistory();renderCharacters();
   });
 }
