@@ -129,6 +129,17 @@ async function syncToCloud() {
   } catch(e) { console.error("syncToCloud failed:", e); updateSyncStatus("error"); }
 }
 
+async function manualSync() {
+  const ss = document.getElementById("syncStatusSettings");
+  if (ss) ss.textContent = "Syncing…";
+  updateSyncStatus("syncing");
+  await syncFromCloud();
+  await syncToCloud();
+  if (ss) ss.textContent = "Done!";
+  updateSyncStatus("ok");
+  setTimeout(() => { if (ss) ss.textContent = ""; }, 3000);
+}
+
 let currentCharId = 1;
 let messages = [];
 let activeCategory = "all";
@@ -260,6 +271,8 @@ function openSettings() {
         <input id="jsonbinId" type="text" placeholder="Bin ID" value="${binId.replace(/"/g,'&quot;')}" style="width:100%;padding:8px;border-radius:6px;background:var(--bg-primary);border:1px solid var(--border);color:var(--text-primary);font-size:0.85rem;font-family:inherit;outline:none;margin-bottom:6px;box-sizing:border-box">
         <input id="jsonbinKey" type="password" placeholder="API Key (X-Master-Key)" value="${binKey.replace(/"/g,'&quot;')}" style="width:100%;padding:8px;border-radius:6px;background:var(--bg-primary);border:1px solid var(--border);color:var(--text-primary);font-size:0.85rem;font-family:inherit;outline:none;box-sizing:border-box">
         <p style="font-size:0.75rem;color:var(--text-secondary);margin:6px 0 0;line-height:1.4">Free at jsonbin.io — create a bin, then paste its ID and your Master Key here. <br>Bots will sync across all your devices automatically.</p>
+        <button onclick="manualSync()" style="margin-top:10px;padding:8px 16px;border-radius:8px;border:1px solid var(--border);background:var(--bg-primary);color:var(--text-primary);cursor:pointer;font-size:0.85rem">🔄 Sync Now</button>
+        <span id="syncStatusSettings" style="margin-left:8px;font-size:0.8rem"></span>
       `;
       panel.appendChild(jb);
     }
@@ -1514,9 +1527,8 @@ function createCharacter() {
       customs[idx].imageUrl = imageUrl;
       localStorage.setItem("deviluke_characters", JSON.stringify(customs));
       loadCharacters();
-      syncToCloud();
+      syncToCloud().then(() => { window.location.href = "my-bots.html"; });
       alert(`Character "${name}" updated!`);
-      window.location.href = "my-bots.html";
       return;
     }
     editingCharId = null;
@@ -1531,9 +1543,8 @@ function createCharacter() {
   };
 
   saveCustomCharacter(newChar);
-  syncToCloud();
+  syncToCloud().then(() => { window.location.href="my-bots.html"; });
   fetch('/api/characters',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(newChar)}).catch(()=>{});
-  window.location.href="my-bots.html";
 }
 
 function loadEditCharacter(id) {
