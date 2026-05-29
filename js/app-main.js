@@ -39,16 +39,18 @@ function getTotalMsgs(charId) {
   return map[String(charId)] || 0;
 }
 
-function compressImage(dataUrl, maxW=200, quality=0.7) {
+function compressImage(dataUrl, maxW=120, quality=0.6) {
   return new Promise(resolve => {
     const img = new Image();
     img.onload = () => {
-      const c = document.createElement("canvas");
-      const scale = Math.min(1, maxW / img.width);
-      c.width = Math.round(img.width * scale);
-      c.height = Math.round(img.height * scale);
-      c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
-      resolve(c.toDataURL("image/jpeg", quality));
+      try {
+        const c = document.createElement("canvas");
+        const scale = Math.min(1, maxW / img.width);
+        c.width = Math.round(img.width * scale) || 1;
+        c.height = Math.round(img.height * scale) || 1;
+        c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+        resolve(c.toDataURL("image/jpeg", quality));
+      } catch(e) { console.warn("compressImage: canvas error", e); resolve(dataUrl); }
     };
     img.onerror = () => resolve(dataUrl);
     img.src = dataUrl;
@@ -165,7 +167,7 @@ async function syncToCloud() {
         cloudBots = (Array.isArray(rawBots) ? rawBots : []).filter(b => b && b.id);
         // Compress large base64 images from cloud bots too
         cloudBots = await Promise.all(cloudBots.map(async b => {
-          if (b.imageUrl && b.imageUrl.startsWith("data:") && b.imageUrl.length > 50000) {
+          if (b.imageUrl && b.imageUrl.startsWith("data:")) {
             return { ...b, imageUrl: await compressImage(b.imageUrl) };
           }
           return b;
@@ -181,7 +183,7 @@ async function syncToCloud() {
     // Compress large base64 images so they fit under JSONBin free tier 100KB limit
     const botsWithTime = await Promise.all(localBots.map(async b => {
       const bot = { ...b };
-      if (bot.imageUrl && bot.imageUrl.startsWith("data:") && bot.imageUrl.length > 50000) {
+      if (bot.imageUrl && bot.imageUrl.startsWith("data:")) {
         console.log("syncToCloud: compressing image for", bot.name, "size=" + (bot.imageUrl.length / 1024).toFixed(0) + "KB");
         bot.imageUrl = await compressImage(bot.imageUrl);
         console.log("syncToCloud: compressed", bot.name, "now size=" + (bot.imageUrl.length / 1024).toFixed(0) + "KB");
@@ -1608,7 +1610,7 @@ async function createCharacter() {
 
   if(!name||!desc||!greeting){alert("Please fill in Name, Description, and Greeting.");return;}
   if(!imageUrl&&!confirm("No image URL provided. The character will use a text avatar. Continue?")){return;}
-  if (imageUrl && imageUrl.startsWith("data:") && imageUrl.length > 50000) {
+  if (imageUrl && imageUrl.startsWith("data:")) {
     imageUrl = await compressImage(imageUrl);
     document.getElementById("charImageUrl").value = imageUrl;
   }
