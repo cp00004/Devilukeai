@@ -39,6 +39,22 @@ function getTotalMsgs(charId) {
   return map[String(charId)] || 0;
 }
 
+function compressImage(dataUrl, maxW=200, quality=0.7) {
+  return new Promise(resolve => {
+    const img = new Image();
+    img.onload = () => {
+      const c = document.createElement("canvas");
+      const scale = Math.min(1, maxW / img.width);
+      c.width = Math.round(img.width * scale);
+      c.height = Math.round(img.height * scale);
+      c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+      resolve(c.toDataURL("image/jpeg", quality));
+    };
+    img.onerror = () => resolve(dataUrl);
+    img.src = dataUrl;
+  });
+}
+
 function _cloudMergeBots(local, remote) {
   const now = Date.now();
   const map = {};
@@ -136,14 +152,13 @@ async function syncToCloud() {
         const record = data.record || {};
         const rawBots = record.characters || record.bots || (Array.isArray(record) ? record : []);
         cloudBots = (Array.isArray(rawBots) ? rawBots : []).filter(b => b && b.id);
-        // Strip base64 images from cloud bots too (free JSONBin 100KB limit)
-        cloudBots = cloudBots.map(b => {
-          if (b.imageUrl && b.imageUrl.startsWith("data:")) {
-            const { imageUrl, ...rest } = b;
-            return { ...rest, _hadBase64Image: true };
+        // Compress large base64 images from cloud bots too
+        cloudBots = await Promise.all(cloudBots.map(async b => {
+          if (b.imageUrl && b.imageUrl.startsWith("data:") && b.imageUrl.length > 50000) {
+            return { ...b, imageUrl: await compressImage(b.imageUrl) };
           }
           return b;
-        });
+        }));
         cloudMsgs = typeof record.totalMsgs === "object" ? record.totalMsgs : {};
         console.log("syncToCloud: cloud has " + cloudBots.length + " bots");
       }
@@ -152,15 +167,16 @@ async function syncToCloud() {
     const localBots = getCustomCharacters();
     console.log("syncToCloud: local custom bots count =", localBots.length);
 
-    // Strip base64 images to stay under JSONBin free tier 100KB limit
-    const stripImage = (b) => {
-      if (b.imageUrl && b.imageUrl.startsWith("data:")) {
-        const { imageUrl, ...rest } = b;
-        return { ...rest, _hadBase64Image: true, updatedAt: Date.now() };
+    // Compress large base64 images so they fit under JSONBin free tier 100KB limit
+    const botsWithTime = await Promise.all(localBots.map(async b => {
+      const bot = { ...b };
+      if (bot.imageUrl && bot.imageUrl.startsWith("data:") && bot.imageUrl.length > 50000) {
+        console.log("syncToCloud: compressing image for", bot.name);
+        bot.imageUrl = await compressImage(bot.imageUrl);
       }
-      return { ...b, updatedAt: Date.now() };
-    };
-    const botsWithTime = localBots.map(stripImage);
+      bot.updatedAt = Date.now();
+      return bot;
+    }));
     const mergedBots = _cloudMergeBots(cloudBots, botsWithTime);
     const mergedMsgs = { ...cloudMsgs };
     const localMsgs = _getTotalMsgsMap();
@@ -1556,27 +1572,32 @@ function handleImageFile(event) {
   if(!file)return;
   document.getElementById("fileName").textContent=file.name;
   const reader=new FileReader();
-  reader.onload=function(e){
+  reader.onload=async function(e){
     const dataUrl=e.target.result;
-    document.getElementById("charImageUrl").value=dataUrl;
+    const compressed = await compressImage(dataUrl);
+    document.getElementById("charImageUrl").value=compressed;
     const preview=document.getElementById("imagePreview");
-    preview.innerHTML=`<img src="${dataUrl}" alt="Preview">`;
+    preview.innerHTML=`<img src="${compressed}" alt="Preview">`;
     preview.classList.add("has-image");
   };
   reader.readAsDataURL(file);
 }
 
-function createCharacter() {
+async function createCharacter() {
   const name=document.getElementById("charName").value.trim();
   const desc=document.getElementById("charDesc").value.trim();
   const personality=document.getElementById("charPersonality").value.trim();
   const greeting=document.getElementById("charGreeting").value.trim();
-  const imageUrl=document.getElementById("charImageUrl").value.trim();
+  let imageUrl=document.getElementById("charImageUrl").value.trim();
   const color=document.getElementById("charColor").value;
   const firstLetter=name?name.charAt(0).toUpperCase():'?';
 
   if(!name||!desc||!greeting){alert("Please fill in Name, Description, and Greeting.");return;}
   if(!imageUrl&&!confirm("No image URL provided. The character will use a text avatar. Continue?")){return;}
+  if (imageUrl && imageUrl.startsWith("data:") && imageUrl.length > 50000) {
+    imageUrl = await compressImage(imageUrl);
+    document.getElementById("charImageUrl").value = imageUrl;
+  }
 
   const tags=Array.from(document.querySelectorAll(".tag-chip")).map(c=>c.textContent.replace("Ã¢Å“â€¢","").trim());
 
