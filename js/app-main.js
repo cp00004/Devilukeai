@@ -1376,8 +1376,7 @@ function createCharacter() {
 
   saveCustomCharacter(newChar);
   fetch('/api/characters',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(newChar)}).catch(()=>{});
-  alert(`Character "${name}" created!`);
-  window.location.href="index.html";
+  window.location.href="my-bots.html";
 }
 
 function loadEditCharacter(id) {
