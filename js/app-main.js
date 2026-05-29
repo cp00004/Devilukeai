@@ -1660,19 +1660,81 @@ function importUserData(event) {
   reader.readAsText(file);
 }
 
-/* --- Google Translate Init --- */
-window.googleTranslateElementInit = function() {
-  if (sessionStorage.getItem("deviluke_reset_lang") === "en") {
-    sessionStorage.removeItem("deviluke_reset_lang");
+/* --- Custom Translation System --- */
+let _transCache = {};
+const _TRANS_CACHE_KEY = "deviluke_tcache";
+
+function _loadCache() {
+  try { _transCache = JSON.parse(localStorage.getItem(_TRANS_CACHE_KEY) || "{}"); } catch { _transCache = {}; }
+}
+function _saveCache() {
+  try { localStorage.setItem(_TRANS_CACHE_KEY, JSON.stringify(_transCache)); } catch {}
+}
+
+function _isTranslatable(node) {
+  const p = node.parentElement;
+  if (!p || p.closest(".notranslate,script,style,textarea,input,select,optgroup,option,code,pre")) return false;
+  const t = node.nodeValue.trim();
+  if (!t || t.length < 2 || /^[\d\s\W]+$/.test(t)) return false;
+  return true;
+}
+
+async function _googleTranslate(text, tl) {
+  const key = text + "|" + tl;
+  if (_transCache[key]) return _transCache[key];
+  try {
+    const r = await fetch(
+      `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${tl}&dt=t&q=${encodeURIComponent(text.slice(0, 2000))}`
+    );
+    const d = await r.json();
+    const t = d[0].map(s => s[0]).join("");
+    _transCache[key] = t;
+    _saveCache();
+    return t;
+  } catch { return text; }
+}
+
+async function translatePage(tl) {
+  if (tl === "en" || !tl) return;
+  _loadCache();
+  const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
+    acceptNode: n => _isTranslatable(n) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT
+  });
+  const nodes = [];
+  while (walker.nextNode()) nodes.push(walker.currentNode);
+  const unique = [...new Set(nodes.map(n => n.nodeValue.trim()))];
+  const uncached = unique.filter(t => !(t + "|" + tl in _transCache));
+  for (let i = 0; i < uncached.length; i += 20) {
+    await Promise.all(uncached.slice(i, i + 20).map(t => _googleTranslate(t, tl)));
+  }
+  for (const n of nodes) {
+    const t = n.nodeValue.trim();
+    const key = t + "|" + tl;
+    if (_transCache[key] && _transCache[key] !== t) {
+      n.nodeValue = n.nodeValue.replace(t, _transCache[key]);
+      n.parentElement.setAttribute("data-translated", "1");
+    }
+  }
+}
+
+function setLanguage(lang) {
+  localStorage.setItem("deviluke_ai_lang", lang);
+  toggleLangDropdown();
+  if (lang === "en") {
+    localStorage.removeItem("deviluke_ai_lang");
+    location.reload();
     return;
   }
-  new google.translate.TranslateElement(
-    {pageLanguage: "en", layout: google.translate.TranslateElement.InlineLayout.SIMPLE},
-    "google_translate_element"
-  );
-};
+  translatePage(lang);
+}
 
-/* --- Custom Language Logic --- */
+function applySavedLanguage() {
+  const saved = localStorage.getItem("deviluke_ai_lang");
+  if (saved && saved !== "en") {
+    setTimeout(() => translatePage(saved), 100);
+  }
+}
+
 function toggleLangDropdown() {
   document.getElementById("langDropdown")?.classList.toggle("show");
 }
@@ -1690,52 +1752,6 @@ function filterLangs() {
   }
 }
 window.filterLangs = filterLangs;
-
-function triggerTranslate(lang) {
-  const sb = document.querySelector(".goog-te-combo");
-  if (!sb) return false;
-  sb.value = lang;
-  ["change", "input", "click"].forEach(t =>
-    sb.dispatchEvent(new Event(t, { bubbles: true, cancelable: true }))
-  );
-  return true;
-}
-
-function waitForSelect(lang, maxAttempts = 20) {
-  let attempts = 0;
-  const retry = setInterval(() => {
-    attempts++;
-    if (triggerTranslate(lang)) {
-      clearInterval(retry);
-      return;
-    }
-    if (attempts >= maxAttempts) {
-      clearInterval(retry);
-    }
-  }, 500);
-}
-
-function setLanguage(lang) {
-  localStorage.setItem("deviluke_ai_lang", lang);
-  toggleLangDropdown();
-  if (lang === "en") {
-    localStorage.removeItem("deviluke_ai_lang");
-    sessionStorage.setItem("deviluke_reset_lang", "en");
-    location.href = location.pathname + location.search;
-    return;
-  }
-  sessionStorage.removeItem("deviluke_reset_lang");
-  if (!triggerTranslate(lang)) {
-    location.href = location.pathname + location.search;
-  }
-}
-
-function applySavedLanguage() {
-  const saved = localStorage.getItem("deviluke_ai_lang");
-  if (saved && saved !== "en") {
-    waitForSelect(saved);
-  }
-}
 
 window.setLanguage = setLanguage;
 window.applySavedLanguage = applySavedLanguage;

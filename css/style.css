@@ -2458,18 +2458,6 @@ a {
 }
 .lang-list button:hover { background: var(--bg-hover); color: var(--text-primary); }
 
-/* Hide default Google Translate UI */
-body { top: 0 !important; }
-.skiptranslate iframe { display: none !important; }
-#goog-gt-tt, .goog-te-balloon-frame { display: none !important; }
-.goog-text-highlight { background-color: transparent !important; box-shadow: none !important; }
-#google_translate_element {
-  position: fixed; top: 0; left: 0;
-  width: 1px; height: 1px;
-  opacity: 0; pointer-events: none; z-index: -1;
-  overflow: hidden;
-}
-
 /* --- APK Download Section --- */
 .apk-download-section {
   margin: 60px auto 80px;
