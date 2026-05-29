@@ -128,6 +128,10 @@ async function syncFromCloud() {
       }
       localStorage.setItem("deviluke_characters", JSON.stringify(merged));
       loadCharacters();
+      // Log image status after merge
+      for (const m of merged) {
+        console.log("syncFromCloud: bot", m.name, "has image:", !!m.imageUrl, "size=" + ((m.imageUrl || "").length / 1024).toFixed(0) + "KB");
+      }
       console.log("syncFromCloud: merged " + merged.length + " bots saved to localStorage");
     }
     const remoteMsgs = record.totalMsgs || record.interests || {};
@@ -178,8 +182,11 @@ async function syncToCloud() {
     const botsWithTime = await Promise.all(localBots.map(async b => {
       const bot = { ...b };
       if (bot.imageUrl && bot.imageUrl.startsWith("data:") && bot.imageUrl.length > 50000) {
-        console.log("syncToCloud: compressing image for", bot.name);
+        console.log("syncToCloud: compressing image for", bot.name, "size=" + (bot.imageUrl.length / 1024).toFixed(0) + "KB");
         bot.imageUrl = await compressImage(bot.imageUrl);
+        console.log("syncToCloud: compressed", bot.name, "now size=" + (bot.imageUrl.length / 1024).toFixed(0) + "KB");
+      } else if (bot.imageUrl) {
+        console.log("syncToCloud: keeping image for", bot.name, "type=" + (bot.imageUrl.startsWith("data:") ? "dataUrl" : "url"), "size=" + (bot.imageUrl.length / 1024).toFixed(0) + "KB");
       }
       bot.updatedAt = Date.now();
       return bot;
@@ -192,7 +199,7 @@ async function syncToCloud() {
     }
 
     const body = JSON.stringify({ characters: mergedBots, totalMsgs: mergedMsgs });
-    console.log("syncToCloud: pushing " + mergedBots.length + " merged bots");
+    console.log("syncToCloud: pushing " + mergedBots.length + " merged bots, body size=" + (body.length / 1024).toFixed(0) + "KB");
     const putr = await fetch("https://api.jsonbin.io/v3/b/" + JSONBIN_BIN_ID, {
       method: "PUT",
       headers: { "Content-Type": "application/json", "X-Master-Key": JSONBIN_API_KEY },
