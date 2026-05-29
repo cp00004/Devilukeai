@@ -1707,8 +1707,16 @@ function setLanguage(lang) {
   localStorage.setItem("deviluke_ai_lang", lang);
   toggleLangDropdown();
   if (lang === "en") {
-    document.cookie = "googtrans=; path=/; max-age=0";
-    location.reload();
+    document.cookie.split(";").forEach(function(c) {
+      var name = c.indexOf("=") > -1 ? c.split("=")[0].trim() : c.trim();
+      if (name.toLowerCase().indexOf("goog") > -1) {
+        document.cookie = name + "=; path=/; max-age=0";
+        document.cookie = name + "=; path=/; domain=" + location.hostname + "; max-age=0";
+        document.cookie = name + "=; path=/; domain=." + location.hostname + "; max-age=0";
+      }
+    });
+    localStorage.removeItem("deviluke_ai_lang");
+    location.href = location.pathname + location.search;
     return;
   }
   if (!triggerTranslate(lang)) {
