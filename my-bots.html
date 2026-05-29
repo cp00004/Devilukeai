@@ -174,7 +174,10 @@
     let pendingDeleteId = null;
 
     function renderMyBots() {
-      const bots = getCustomCharacters();
+      const allBots = getCustomCharacters();
+      // admin sees all, others see only their own bots
+      const isOwner = typeof isAdminUser === "function" && isAdminUser();
+      const bots = isOwner ? allBots : allBots.filter(b => b.creator === (currentUser && currentUser.name));
       const grid = document.getElementById("myBotsGrid");
       const empty = document.getElementById("myBotsEmpty");
 
