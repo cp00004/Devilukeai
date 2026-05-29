@@ -40,10 +40,6 @@ function getTotalMsgs(charId) {
 }
 
 function compressImage(dataUrl, maxW=120, quality=0.6) {
-  // Keep small GIFs animated — compress large ones to static JPEG to fit JSONBin
-  if (dataUrl.startsWith("data:image/gif") && dataUrl.length < 30000) {
-    return Promise.resolve(dataUrl);
-  }
   return new Promise(resolve => {
     const img = new Image();
     img.onload = () => {
@@ -171,7 +167,7 @@ async function syncToCloud() {
         cloudBots = (Array.isArray(rawBots) ? rawBots : []).filter(b => b && b.id);
         // Compress large base64 images from cloud bots too
         cloudBots = await Promise.all(cloudBots.map(async b => {
-          if (b.imageUrl && b.imageUrl.startsWith("data:")) {
+          if (b.imageUrl && b.imageUrl.startsWith("data:") && !b.imageUrl.startsWith("data:image/gif")) {
             return { ...b, imageUrl: await compressImage(b.imageUrl) };
           }
           return b;
@@ -187,7 +183,7 @@ async function syncToCloud() {
     // Compress large base64 images so they fit under JSONBin free tier 100KB limit
     const botsWithTime = await Promise.all(localBots.map(async b => {
       const bot = { ...b };
-      if (bot.imageUrl && bot.imageUrl.startsWith("data:")) {
+      if (bot.imageUrl && bot.imageUrl.startsWith("data:") && !bot.imageUrl.startsWith("data:image/gif")) {
         console.log("syncToCloud: compressing image for", bot.name, "size=" + (bot.imageUrl.length / 1024).toFixed(0) + "KB");
         bot.imageUrl = await compressImage(bot.imageUrl);
         console.log("syncToCloud: compressed", bot.name, "now size=" + (bot.imageUrl.length / 1024).toFixed(0) + "KB");
@@ -1595,7 +1591,7 @@ function handleImageFile(event) {
   const reader=new FileReader();
   reader.onload=async function(e){
     const dataUrl=e.target.result;
-    const compressed = await compressImage(dataUrl);
+    const compressed = file.type === "image/gif" ? dataUrl : await compressImage(dataUrl);
     document.getElementById("charImageUrl").value=compressed;
     const preview=document.getElementById("imagePreview");
     preview.innerHTML=`<img src="${compressed}" alt="Preview">`;
@@ -1615,7 +1611,7 @@ async function createCharacter() {
 
   if(!name||!desc||!greeting){alert("Please fill in Name, Description, and Greeting.");return;}
   if(!imageUrl&&!confirm("No image URL provided. The character will use a text avatar. Continue?")){return;}
-  if (imageUrl && imageUrl.startsWith("data:")) {
+  if (imageUrl && imageUrl.startsWith("data:") && !imageUrl.startsWith("data:image/gif")) {
     imageUrl = await compressImage(imageUrl);
     document.getElementById("charImageUrl").value = imageUrl;
   }
