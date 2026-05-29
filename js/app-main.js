@@ -368,9 +368,10 @@ function openSettings() {
   const p=document.getElementById("customColorPicker"); if(p)p.value=settings.accentColor;
   const u=document.getElementById("usernameInput"); if(u&&currentUser)u.value=currentUser.name||"";
   renderColorSwatches();
-  // Inject JSONBin fields
+  // Inject JSONBin fields — only visible to sync owner
   let jb = document.getElementById("jsonbinSettings");
-  if (!jb) {
+  const isOwner = currentUser && currentUser.name === "Cipher";
+  if (!jb && isOwner) {
     const panel = document.querySelector(".settings-panel");
     if (panel) {
       const binId = localStorage.getItem("deviluke_jsonbin_id") || "6a19cff0ddf5aa59f7757613";
