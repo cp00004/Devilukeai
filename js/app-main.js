@@ -40,8 +40,8 @@ function getTotalMsgs(charId) {
 }
 
 function compressImage(dataUrl, maxW=120, quality=0.6) {
-  // Keep GIFs animated — don't convert to static JPEG
-  if (dataUrl.startsWith("data:image/gif")) {
+  // Keep small GIFs animated — compress large ones to static JPEG to fit JSONBin
+  if (dataUrl.startsWith("data:image/gif") && dataUrl.length < 30000) {
     return Promise.resolve(dataUrl);
   }
   return new Promise(resolve => {
