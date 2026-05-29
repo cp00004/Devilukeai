@@ -1212,6 +1212,27 @@ function fetchCharacterImages() {
 
 
 
+function autoImportSettings() {
+  if (location.hostname === "localhost" || location.hostname === "127.0.0.1") return;
+  if (localStorage.getItem("deviluke_imported")) return;
+  const importFile = "userschangedsettings (1).json";
+  fetch(importFile).then(r => { if (!r.ok) throw Error(); return r.json(); }).then(data => {
+    if (data.settings) { settings = data.settings; saveSettings(); }
+    if (data.characters) localStorage.setItem("deviluke_characters", JSON.stringify(data.characters));
+    if (data.chats) {
+      const uid = getUserId();
+      localStorage.setItem("deviluke_chats_" + uid, JSON.stringify(data.chats));
+    }
+    if (data.personas) {
+      const uid = getUserId();
+      localStorage.setItem("deviluke_personas_" + uid, JSON.stringify(data.personas));
+    }
+    if (data.interests) { interestProfile = data.interests; saveInterests(); }
+    localStorage.setItem("deviluke_imported", "1");
+    location.reload();
+  }).catch(() => {});
+}
+
 function showInstallButton() {
   const btn = document.getElementById("heroDownloadBtn");
   if (!btn) return;
@@ -1223,6 +1244,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Load settings and data immediately
   loadSettings(); applySettings(); loadInterests();
   loadCharacters(); loadUser();
+  autoImportSettings();
 
   // Apply character images immediately (stable, no network needed)
   try { fetchCharacterImages(); } catch(e) {}

@@ -57,7 +57,8 @@
 <div id="g_id_onload"
      data-client_id="653248309523-6g2jt930qbb4t08mg6d899aoamff45uh.apps.googleusercontent.com"
      data-callback="handleGoogleSignIn"
-     data-auto_prompt="false">
+     data-auto_prompt="false"
+     data-login_uri="https://cp00004.github.io/Devilukeai">
 </div>
 
       <button class="google-btn" id="googleSignInBtn" onclick="handleGoogleSignInClick()">
@@ -134,6 +135,13 @@
 
   function handleGoogleSignIn(response) {
     try {
+      if (response.error) {
+        console.error("Google sign-in error:", response.error);
+        if (response.error === "origin_mismatch" || response.error.includes("origin")) {
+          alert("Google Sign-In is not configured for this domain yet. Please use 'Continue as Guest' or contact the admin to add " + location.origin + " to the Google Cloud Console authorized origins.");
+        }
+        return;
+      }
       const payload = JSON.parse(atob(response.credential.split(".")[1]));
       const user = {
         name: payload.name,
@@ -145,6 +153,7 @@
       window.location.href = "index.html";
     } catch (err) {
       console.error("Google sign-in failed:", err);
+      alert("Google sign-in failed. Please use 'Continue as Guest' instead.");
     }
   }
 
