@@ -825,7 +825,7 @@ function renderCharacterCard(char) {
   const imgHtml = char.imageUrl ? `<img class="card-img" src="${char.imageUrl}" alt="${char.name}" onerror="this.outerHTML='<div class=\\'card-img\\' style=\\'display:flex;align-items:center;justify-content:center;font-size:3rem;background:var(--bg-hover)\\'> </div>'">` : `<div class="card-img" style="display:flex;align-items:center;justify-content:center;font-size:3rem;background:var(--bg-hover)"> </div>`;
   const starBadge = (activeCategory === "for-you") ? `<div style="position:absolute; top:8px; right:8px; background:#ffd700; color:#000; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:bold; box-shadow:0 2px 6px rgba(0,0,0,0.8); z-index:10;" title="Recommended for you">FY</div>` : "";
   const sharedTotal=getTotalMsgs(char.id);
-  const deleteBtn = char.isCustom ? `<button class="card-delete-btn" onclick="event.stopPropagation();if(confirm('Delete &quot;${char.name}&quot;?')){deleteCustomCharacter('${char.id}');location.reload()}">Delete</button>` : "";
+  const deleteBtn = char.isCustom && isAdminUser() ? `<button class="card-delete-btn" onclick="event.stopPropagation();if(confirm('Delete &quot;${char.name}&quot;?')){deleteCustomCharacter('${char.id}');location.reload()}">Delete</button>` : "";
   return `<div class="character-card" style="position:relative;" onclick="startChat(${typeof char.id==='number'?char.id:"'"+char.id+"'"})">
     ${starBadge}
     ${imgHtml}
