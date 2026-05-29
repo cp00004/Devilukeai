@@ -1236,16 +1236,15 @@ function showInstallButton() {
 
 /* â”€â”€â”€ Init â”€â”€â”€ */
 document.addEventListener("DOMContentLoaded", () => {
-  // Load settings and data immediately
   loadSettings(); applySettings(); loadInterests();
   loadCharacters(); loadUser();
   autoImportSettings();
 
-  // Apply character images immediately (stable, no network needed)
   try { fetchCharacterImages(); } catch(e) {}
 
-  // â”€â”€ Render everything RIGHT AWAY so the page never looks blank â”€â”€
-  renderNavUser();
+  // Check premium BEFORE rendering nav so wings appear immediately
+  checkPremiumStatus().then(() => { renderNavUser(); });
+
   initCategoryPills();
   renderCharacters();
   renderChatHistory();
@@ -1298,9 +1297,8 @@ document.addEventListener("DOMContentLoaded", () => {
     renderChatHistory();
   }).catch(() => {});
 
-  // Background: load public characters + premium check
+  // Background: load public characters
   loadPublicCharacters();
-  checkPremiumStatus();
 
   if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register(location.pathname.replace(/\/[^/]*$/,"")+"/sw.js").then(reg => {
@@ -1332,7 +1330,7 @@ window.addEventListener("pageshow", (e) => {
     loadSettings(); applySettings();
     loadCharacters(); loadUser();
     try { fetchCharacterImages(); } catch(err) {}
-    renderNavUser();
+    checkPremiumStatus().then(() => { renderNavUser(); });
     initCategoryPills();
     renderCharacters();
     renderChatHistory();
@@ -1345,7 +1343,6 @@ window.addEventListener("pageshow", (e) => {
     if (adminSection) adminSection.style.display = "block";
     const exportBtn = document.getElementById("exportDataBtn");
     if (exportBtn) exportBtn.style.display = isAdminUser() ? "inline-block" : "none";
-    checkPremiumStatus();
   }
 });
 
