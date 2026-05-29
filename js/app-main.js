@@ -1712,45 +1712,26 @@ async function translatePage(tl) {
       const segs = d[0];
       if (segs.length === uncached.length) {
         for (let i = 0; i < uncached.length; i++) {
-          const orig = uncached[i][0];
-          const trans = (segs[i][0] || "").replace(/\n$/, "");
-          if (trans) { _transCache[orig + "|" + tl] = trans; }
-        }
-      } else {
-        // Segments don't match — fallback: translate individually
-        let si = 0;
-        for (let i = 0; i < uncached.length; i++) {
-          const orig = uncached[i][0];
-          let trans = "";
-          while (si < segs.length) {
-            trans += segs[si][0] || "";
-            si++;
-            const so = (segs[si-1][1] || "").replace(/\n$/, "");
-            if (i === uncached.length - 1 || so === (uncached[i+1] && uncached[i+1][0]) || si >= segs.length) break;
-          }
-          trans = trans.replace(/\n$/, "");
-          if (trans) _transCache[orig + "|" + tl] = trans;
+          const tv = (segs[i][0] || "").replace(/\n$/, "");
+          if (tv) _transCache[uncached[i][0] + "|" + tl] = tv;
         }
       }
     }
   } catch {}
 
-  // Fallback for any still-uncached texts
-  const stillMissing = entries.filter(([t]) => !(t + "|" + tl in _transCache));
-  if (stillMissing.length > 0) {
-    // Try MyMemory for individual texts
-    for (const [text] of stillMissing) {
-      try {
-        const r2 = await fetch(
-          "https://api.mymemory.translated.net/get?q=" + encodeURIComponent(text.slice(0, 500)) + "&langpair=en|" + tl
-        );
-        if (r2.ok) {
-          const d2 = await r2.json();
-          const t2 = d2.responseData?.translatedText;
-          if (t2 && t2 !== text) _transCache[text + "|" + tl] = t2;
-        }
-      } catch {}
-    }
+  // Fallback for any texts still missing from cache
+  for (const [text] of entries) {
+    if (text + "|" + tl in _transCache) continue;
+    try {
+      const r2 = await fetch(
+        "https://api.mymemory.translated.net/get?q=" + encodeURIComponent(text.slice(0, 500)) + "&langpair=en|" + tl
+      );
+      if (r2.ok) {
+        const d2 = await r2.json();
+        const tv = d2.responseData?.translatedText;
+        if (tv && tv !== text) _transCache[text + "|" + tl] = tv;
+      }
+    } catch {}
   }
 
   _saveCache();
