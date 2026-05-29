@@ -1699,12 +1699,6 @@ async function translatePage(tl) {
   const uncached = entries.filter(([t]) => !(t + "|" + tl in _transCache));
   if (uncached.length === 0) { _applyTrans(entries, tl); return; }
 
-  const overlay = document.createElement("div");
-  overlay.id = "transOverlay";
-  overlay.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9999;display:flex;align-items:center;justify-content:center;font:18px sans-serif;color:#fff";
-  overlay.textContent = "Translating…";
-  document.body.appendChild(overlay);
-
   const texts = uncached.map(([t]) => t);
 
   // Fire ALL translations in parallel — Google first, MyMemory fallback
@@ -1729,7 +1723,6 @@ async function translatePage(tl) {
 
   _saveCache();
   try { _applyTrans(entries, tl); } catch (e) { console.error("translatePage apply error:", e); }
-  overlay.remove();
 }
 
 function _startTransObserver() {
