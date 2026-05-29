@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script>if (new URLSearchParams(location.search).has("update")) { location.replace("index.html"); }</script>
+  <title>Download — Deviluke AI</title>
+  <meta name="description" content="Download the Deviluke AI app for Android. Bring all your characters, personas, and chats to your mobile device.">
+  <link rel="stylesheet" href="css/style.css?v=34">
+  <link rel="icon" href="d.ai.png?v=2">
+  <link rel="manifest" href="manifest.json">
+  <style>
+    .download-page {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 80px 24px 60px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Animated background glow blobs */
+    .download-page::before,
+    .download-page::after {
+      content: '';
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(120px);
+      pointer-events: none;
+      z-index: 0;
+    }
+    .download-page::before {
+      width: 500px; height: 500px;
+      background: radial-gradient(circle, rgba(239,68,68,0.18) 0%, transparent 70%);
+      top: -100px; left: 50%;
+      transform: translateX(-50%);
+      animation: blobPulse 6s ease-in-out infinite;
+    }
+    .download-page::after {
+      width: 350px; height: 350px;
+      background: radial-gradient(circle, rgba(139,92,246,0.12) 0%, transparent 70%);
+      bottom: 0; right: 0;
+      animation: blobPulse 8s ease-in-out infinite reverse;
+    }
+    @keyframes blobPulse {
+      0%, 100% { opacity: 0.7; transform: translateX(-50%) scale(1); }
+      50% { opacity: 1; transform: translateX(-50%) scale(1.15); }
+    }
+
+    .download-card {
+      position: relative;
+      z-index: 1;
+      background: rgba(18, 18, 28, 0.85);
+      backdrop-filter: blur(24px);
+      border: 1px solid rgba(239,68,68,0.2);
+      border-radius: 28px;
+      padding: 56px 64px;
+      max-width: 680px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 24px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.04) inset;
+    }
+
+    /* Logo */
+    .download-logo-wrap {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 32px;
+      position: relative;
+    }
+    .download-logo-wrap::before {
+      content: '';
+      position: absolute;
+      inset: -20px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(239,68,68,0.25) 0%, transparent 70%);
+      animation: logoPulse 3s ease-in-out infinite;
+    }
+    @keyframes logoPulse {
+      0%, 100% { opacity: 0.6; transform: scale(1); }
+      50% { opacity: 1; transform: scale(1.08); }
+    }
+    .download-logo {
+      width: 140px;
+      height: 140px;
+      object-fit: contain;
+      position: relative;
+      z-index: 1;
+      border-radius: 24px;
+      box-shadow: 0 8px 40px rgba(239,68,68,0.5);
+      filter: drop-shadow(0 0 20px rgba(239,68,68,0.6));
+    }
+
+    .download-title {
+      font-size: 2.2rem;
+      font-weight: 800;
+      color: var(--text-primary);
+      margin: 0 0 12px;
+      letter-spacing: -0.5px;
+    }
+    .download-title span {
+      background: linear-gradient(135deg, #ef4444, #f97316);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .download-sub {
+      font-size: 1.05rem;
+      color: var(--text-muted);
+      line-height: 1.7;
+      margin: 0 auto 36px;
+      max-width: 480px;
+    }
+
+    /* Feature grid */
+    .download-features {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-bottom: 40px;
+    }
+    .download-feature {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 12px;
+      padding: 14px 18px;
+      text-align: left;
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+    }
+    .download-feature-icon {
+      font-size: 1.3rem;
+      flex-shrink: 0;
+    }
+
+    /* Download button */
+    .download-btn-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+    .download-apk-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+      color: #fff;
+      text-decoration: none;
+      border-radius: 16px;
+      padding: 18px 48px;
+      font-size: 1.15rem;
+      font-weight: 700;
+      transition: transform 0.2s, box-shadow 0.2s;
+      box-shadow: 0 6px 30px rgba(239,68,68,0.5), 0 0 0 1px rgba(255,255,255,0.1) inset;
+      letter-spacing: 0.3px;
+    }
+    .download-apk-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 40px rgba(239,68,68,0.65), 0 0 0 1px rgba(255,255,255,0.15) inset;
+    }
+    .download-apk-btn:active {
+      transform: translateY(0);
+    }
+    .download-apk-btn svg {
+      flex-shrink: 0;
+    }
+
+    .download-meta {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      color: var(--text-muted);
+      font-size: 0.82rem;
+    }
+    .download-meta span {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    /* Divider */
+    .download-divider {
+      border: none;
+      border-top: 1px solid rgba(255,255,255,0.07);
+      margin: 36px 0 28px;
+    }
+
+    .download-disclaimer {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+    .download-disclaimer a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    @media (max-width: 600px) {
+      .download-page {
+        min-height: auto;
+        justify-content: flex-start;
+        padding: 64px 12px 24px;
+        overflow: visible;
+      }
+      .download-page::before,
+      .download-page::after { display: none; }
+      .download-card {
+        padding: 20px 16px 18px;
+        border-radius: 16px;
+        max-width: 100%;
+      }
+      .download-logo-wrap { margin-bottom: 14px; }
+      .download-logo-wrap::before { inset: -8px; }
+      .download-logo {
+        width: 82px;
+        height: 82px;
+        border-radius: 16px;
+      }
+      .download-title {
+        font-size: 1.25rem;
+        line-height: 1.2;
+        margin-bottom: 8px;
+      }
+      .download-sub {
+        font-size: 0.82rem;
+        line-height: 1.45;
+        margin-bottom: 16px;
+      }
+      .download-features {
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        margin-bottom: 16px;
+      }
+      .download-feature {
+        gap: 6px;
+        padding: 8px 9px;
+        border-radius: 10px;
+        font-size: 0.72rem;
+        line-height: 1.25;
+      }
+      .download-feature-icon { font-size: 1rem; }
+      .download-apk-btn {
+        min-height: 48px;
+        padding: 13px 18px;
+        border-radius: 12px;
+        font-size: 0.95rem;
+      }
+      .download-divider { margin: 18px 0 12px; }
+      .download-disclaimer { font-size: 0.72rem; }
+    }
+
+    @media (max-width: 360px) {
+      .download-features { grid-template-columns: 1fr; }
+      .download-feature { justify-content: center; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+  <div class="splash-screen" id="splashScreen">
+    <img src="deviluke-banner.png" alt="Deviluke AI" class="splash-logo" id="splashLogo" style="opacity:0">
+  </div>
+  <script>
+    (function() {
+      var logo = document.getElementById("splashLogo");
+      if (!logo) return;
+      try {
+        var s = JSON.parse(localStorage.getItem("deviluke_settings"));
+        if (s && s.accentColor) {
+          var hex = s.accentColor;
+          var r = parseInt(hex.slice(1,3),16)/255, g = parseInt(hex.slice(3,5),16)/255, b = parseInt(hex.slice(5,7),16)/255;
+          var max = Math.max(r,g,b), min = Math.min(r,g,b), h = 0;
+          if (max !== min) {
+            var d = max - min;
+            if (max === r) h = ((g - b) / d + (g < b ? 6 : 0)) / 6;
+            else if (max === g) h = ((b - r) / d + 2) / 6;
+            else h = ((r - g) / d + 4) / 6;
+          }
+          logo.style.filter = "hue-rotate(" + Math.round(h * 360) + "deg) saturate(1.3) brightness(1.05)";
+        }
+      } catch(e) {}
+      logo.classList.add("tinted");
+    })();
+  </script>
+
+  <aside class="left-sidebar">
+    <a href="index.html" class="left-sidebar-logo">Deviluke AI</a>
+    <nav class="left-sidebar-nav">
+      <a href="index.html" class="left-sidebar-link">Characters</a>
+      <a href="chat.html" class="left-sidebar-link">Chat</a>
+      <a href="personas.html" class="left-sidebar-link">Personas</a>
+      <a href="create.html" class="left-sidebar-link">Create</a>
+      <a href="my-bots.html" class="left-sidebar-link">My Bots</a>
+      <a href="download.html" class="left-sidebar-link active">Download App</a>
+    </nav>
+  </aside>
+
+  <nav class="navbar">
+    <div class="nav-inner">
+      <div id="google_translate_element" style="display:none;"></div>
+      <span id="navUser"></span>
+      <div class="lang-dropdown">
+        <button class="lang-btn" onclick="toggleLangDropdown()" title="Change Language">🌐</button>
+        <div class="lang-dropdown-menu" id="langDropdown">
+          <input type="text" id="langSearch" placeholder="Search language..." onkeyup="filterLangs()">
+          <div class="lang-list" id="langList">
+            <button onclick="setLanguage('en')">English</button>
+            <button onclick="setLanguage('es')">Spanish</button>
+            <button onclick="setLanguage('fr')">French</button>
+            <button onclick="setLanguage('de')">German</button>
+            <button onclick="setLanguage('it')">Italian</button>
+            <button onclick="setLanguage('pt')">Portuguese</button>
+            <button onclick="setLanguage('ru')">Russian</button>
+            <button onclick="setLanguage('ja')">Japanese</button>
+            <button onclick="setLanguage('ko')">Korean</button>
+            <button onclick="setLanguage('zh-CN')">Chinese (Simplified)</button>
+            <button onclick="setLanguage('ar')">Arabic</button>
+            <button onclick="setLanguage('hi')">Hindi</button>
+          </div>
+        </div>
+      </div>
+      <button class="settings-btn" onclick="openSettings()" title="Settings">⚙️</button>
+    </div>
+  </nav>
+
+  <div class="download-page">
+    <div class="download-card">
+
+      <!-- Logo -->
+      <div class="download-logo-wrap">
+        <img src="d.ai.png" alt="Deviluke AI" class="download-logo" id="dlLogo">
+      </div>
+
+      <h1 class="download-title">Deviluke <span>AI</span> for Android</h1>
+      <p class="download-sub">
+        Your favorite AI companions, now in your pocket. Get the full Deviluke AI experience as a native Android app.
+      </p>
+
+      <!-- Features -->
+      <div class="download-features">
+        <div class="download-feature">
+          <span class="download-feature-icon">🤖</span>
+          <span>All your characters & bots</span>
+        </div>
+        <div class="download-feature">
+          <span class="download-feature-icon">🌙</span>
+          <span>Native dark mode</span>
+        </div>
+        <div class="download-feature">
+          <span class="download-feature-icon">🔔</span>
+          <span>Push notifications</span>
+        </div>
+        <div class="download-feature">
+          <span class="download-feature-icon">⚡</span>
+          <span>Faster than the browser</span>
+        </div>
+        <div class="download-feature">
+          <span class="download-feature-icon">🔒</span>
+          <span>Secure & private</span>
+        </div>
+        <div class="download-feature">
+          <span class="download-feature-icon">🌐</span>
+          <span>Multi-language support</span>
+        </div>
+      </div>
+
+      <!-- How to get the APK -->
+      <div class="apk-steps-box">
+        <div class="apk-steps-title">📲 How to get the Android App</div>
+        <ol class="apk-steps-list">
+          <li>
+            <span class="apk-step-num">1</span>
+            <div>
+              <strong>Download the APK</strong>
+              <p>Tap the button below to get the Android release file.</p>
+            </div>
+          </li>
+          <li>
+            <span class="apk-step-num">2</span>
+            <div>
+              <strong>Allow the install</strong>
+              <p>If Android asks, allow installs from your browser or file manager.</p>
+            </div>
+          </li>
+          <li>
+            <span class="apk-step-num">3</span>
+            <div>
+              <strong>Open Deviluke AI</strong>
+              <p>Install the app, then launch it from your home screen.</p>
+            </div>
+          </li>
+        </ol>
+        <a href="app-release.apk" download="Devilukeai.apk" class="download-apk-btn" id="apkDownloadBtn" style="margin-top:8px; width:100%; justify-content:center; box-sizing:border-box;">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="22" height="22"><path d="M14 3v2H5v14h14v-9h2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h9zm5 0v6h-2V6.414l-7.293 7.293-1.414-1.414L17.586 5H15V3h4z"/></svg>
+          Download APK
+        </a>
+        <p style="font-size:0.75rem;color:var(--text-muted);margin-top:6px">If download doesn't start, <a href="app-release.apk" download="Devilukeai.apk" target="_blank" style="color:var(--accent)">tap here</a> to open in browser</p>
+      </div>
+
+      <hr class="download-divider">
+
+      <p class="download-disclaimer">
+        This downloads the included Android release package: <code>Devilukeai.apk</code>.
+      </p>
+
+    </div>
+  </div>
+
+  <!-- Settings Modal -->
+  <div class="settings-modal" id="settingsModal">
+    <div class="settings-panel">
+      <h2>⚙️ Settings</h2>
+      <p class="settings-sub">Customize your experience</p>
+      <div class="settings-group">
+        <label>
+          <span>NSFW Content</span>
+          <div class="toggle-switch">
+            <input type="checkbox" id="nsfwToggle" onchange="toggleNsfw()">
+            <span class="toggle-slider"></span>
+          </div>
+        </label>
+        <p class="setting-hint">Show or hide NSFW characters and tags</p>
+      </div>
+      <div class="settings-group">
+        <label><span>Accent Color</span></label>
+        <p class="setting-hint">Choose your theme color</p>
+        <div class="color-options" id="colorSwatches"></div>
+        <div class="color-picker-row">
+          <input type="color" id="customColorPicker" oninput="handleCustomColor(event)" value="#ef4444">
+          <span>Custom color</span>
+        </div>
+      </div>
+      <div class="settings-group">
+        <label><span>Username</span></label>
+        <p class="setting-hint">Change your display name</p>
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <input type="text" id="usernameInput" maxlength="30" style="flex:1;padding:8px 12px;border-radius:8px;background:var(--bg-primary);border:1px solid var(--border);color:var(--text-primary);font-size:0.9rem;font-family:inherit;outline:none">
+          <button class="btn btn-primary" style="padding:8px 16px;font-size:0.85rem" onclick="saveUsername()">Save</button>
+        </div>
+      </div>
+      <button class="settings-close-btn" onclick="closeSettings()">Done</button>
+    </div>
+  </div>
+
+  <script src="js/app-main.js?v=34"></script>
+  <script>
+    // Apply accent color to the logo glow
+    document.addEventListener("DOMContentLoaded", () => {
+      loadSettings();
+      applySettings();
+      if (settings && settings.accentColor) {
+        const logo = document.getElementById("dlLogo");
+        if (logo) {
+          const targetHue = hexToHue(settings.accentColor);
+          const rotation = targetHue - 0;
+          logo.style.filter = `drop-shadow(0 0 20px ${settings.accentColor}) hue-rotate(${rotation}deg)`;
+        }
+      }
+    });
+  </script>
+
+
+
+  <script type="text/javascript">
+  function googleTranslateElementInit() {
+    new google.translate.TranslateElement({pageLanguage: 'en', layout: google.translate.TranslateElement.InlineLayout.SIMPLE}, 'google_translate_element');
+  }
+  </script>
+  <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
+</body>
+</html>
