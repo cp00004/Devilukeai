@@ -65,17 +65,19 @@ async function syncFromCloud() {
     if (!r.ok) return;
     const data = await r.json();
     const record = data.record || {};
-    const remoteBots = (record.characters || (Array.isArray(record) ? record.filter(b => b && b.id) : [])).filter(b => b && b.id);
+    const rawBots = record.characters || record.bots || (Array.isArray(record) ? record : []);
+    const remoteBots = (Array.isArray(rawBots) ? rawBots : []).filter(b => b && b.id);
     if (remoteBots.length) {
       const local = getCustomCharacters();
       const merged = _cloudMergeBots(local, remoteBots);
       localStorage.setItem("deviluke_characters", JSON.stringify(merged));
       loadCharacters();
     }
-    if (record.totalMsgs) {
+    const remoteMsgs = record.totalMsgs || record.interests || {};
+    if (remoteMsgs && typeof remoteMsgs === "object") {
       const local = _getTotalMsgsMap();
-      for (const [id, count] of Object.entries(record.totalMsgs)) {
-        local[id] = Math.max(local[id] || 0, count);
+      for (const [id, count] of Object.entries(remoteMsgs)) {
+        if (typeof count === "number") local[id] = Math.max(local[id] || 0, count);
       }
       _saveTotalMsgsMap(local);
     }
@@ -94,8 +96,9 @@ async function syncToCloud() {
       if (r.ok) {
         const data = await r.json();
         const record = data.record || {};
-        cloudBots = (record.characters || (Array.isArray(record) ? record.filter(b => b && b.id) : [])).filter(b => b && b.id);
-        cloudMsgs = record.totalMsgs || {};
+        const rawBots = record.characters || record.bots || (Array.isArray(record) ? record : []);
+        cloudBots = (Array.isArray(rawBots) ? rawBots : []).filter(b => b && b.id);
+        cloudMsgs = typeof record.totalMsgs === "object" ? record.totalMsgs : {};
       }
     } catch {}
     const localBots = getCustomCharacters().map(b => ({ ...b, updatedAt: Date.now() }));
