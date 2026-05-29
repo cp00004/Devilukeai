@@ -277,6 +277,19 @@ function loadUser() {
       picture: user.picture || null,
       type: user.type || "unknown"
     };
+    // Migrate guest data to logged-in user on first login
+    if (user.email) {
+      const GUEST = "guest";
+      const uid = user.email;
+      ["deviluke_chats_", "deviluke_personas_"].forEach(prefix => {
+        const guestData = localStorage.getItem(prefix + GUEST);
+        const userData = localStorage.getItem(prefix + uid);
+        if (guestData && !userData) {
+          localStorage.setItem(prefix + uid, guestData);
+        }
+        if (guestData) localStorage.removeItem(prefix + GUEST);
+      });
+    }
     return true;
   }
   return false;
@@ -582,7 +595,12 @@ function renderNavUser() {
   if(currentUser){
     const img=currentUser.picture||"https://ui-avatars.com/api/?name="+encodeURIComponent(currentUser.name||"Guest")+"&background=ef4444&color=fff";
     // Wings are ONLY shown when premiumStatus.premium is strictly true — never faked
-    const isPremium = premiumStatus && premiumStatus.premium === true;
+    let isPremium = premiumStatus && premiumStatus.premium === true;
+    // Synchronous fallback — handles edge cases where async premium check hasn't resolved
+    if (!isPremium && currentUser && currentUser.email && isPremiumEmail(currentUser.email)) {
+      premiumStatus = { premium: true, expiresAt: 0 };
+      isPremium = true;
+    }
     const isOwner = isAdminUser();
     const ownerBadge = isOwner ? `<span class="owner-badge" title="Owner">Owner</span>` : "";
     const wings = isPremium ? `<img src="premium-wings.png" class="premium-badge" title="Premium Member">` : "";
