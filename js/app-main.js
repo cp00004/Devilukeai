@@ -1660,6 +1660,18 @@ function importUserData(event) {
   reader.readAsText(file);
 }
 
+/* --- Google Translate Init --- */
+window.googleTranslateElementInit = function() {
+  if (sessionStorage.getItem("deviluke_reset_lang") === "en") {
+    sessionStorage.removeItem("deviluke_reset_lang");
+    return;
+  }
+  new google.translate.TranslateElement(
+    {pageLanguage: "en", layout: google.translate.TranslateElement.InlineLayout.SIMPLE},
+    "google_translate_element"
+  );
+};
+
 /* --- Custom Language Logic --- */
 function toggleLangDropdown() {
   document.getElementById("langDropdown")?.classList.toggle("show");
@@ -1707,20 +1719,14 @@ function setLanguage(lang) {
   localStorage.setItem("deviluke_ai_lang", lang);
   toggleLangDropdown();
   if (lang === "en") {
-    document.cookie.split(";").forEach(function(c) {
-      var name = c.indexOf("=") > -1 ? c.split("=")[0].trim() : c.trim();
-      if (name.toLowerCase().indexOf("goog") > -1) {
-        document.cookie = name + "=; path=/; max-age=0";
-        document.cookie = name + "=; path=/; domain=" + location.hostname + "; max-age=0";
-        document.cookie = name + "=; path=/; domain=." + location.hostname + "; max-age=0";
-      }
-    });
     localStorage.removeItem("deviluke_ai_lang");
+    sessionStorage.setItem("deviluke_reset_lang", "en");
     location.href = location.pathname + location.search;
     return;
   }
+  sessionStorage.removeItem("deviluke_reset_lang");
   if (!triggerTranslate(lang)) {
-    waitForSelect(lang);
+    location.href = location.pathname + location.search;
   }
 }
 
