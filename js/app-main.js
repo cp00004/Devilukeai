@@ -13,6 +13,47 @@
 const categories = ["for-you", "all"];
 const presetColors = ["#ef4444", "#ff6b6b", "#ff4500", "#ff0080", "#ff7f50", "#ffd700", "#00ff88", "#00bfff", "#8b5cf6"];
 
+/* --- JSONBin.io Cloud Sync --- */
+const JSONBIN_BIN_ID = localStorage.getItem("deviluke_jsonbin_id") || "";
+const JSONBIN_API_KEY = localStorage.getItem("deviluke_jsonbin_key") || "";
+
+function isCloudSyncReady() { return JSONBIN_BIN_ID && JSONBIN_API_KEY; }
+
+async function syncFromCloud() {
+  if (!isCloudSyncReady()) return;
+  try {
+    const r = await fetch("https://api.jsonbin.io/v3/b/" + JSONBIN_BIN_ID + "/latest", {
+      headers: { "X-Master-Key": JSONBIN_API_KEY }
+    });
+    if (!r.ok) return;
+    const data = await r.json();
+    const remote = data.record || [];
+    if (!remote.length) return;
+    const local = getCustomCharacters();
+    const merged = [...local];
+    for (const rBot of remote) {
+      const existing = merged.findIndex(b => b.id === rBot.id);
+      if (existing < 0) {
+        if (rBot.updatedAt) rBot.updatedAt = Date.now();
+        merged.push(rBot);
+      }
+    }
+    localStorage.setItem("deviluke_characters", JSON.stringify(merged));
+  } catch {}
+}
+
+async function syncToCloud() {
+  if (!isCloudSyncReady()) return;
+  try {
+    const bots = getCustomCharacters().map(b => ({ ...b, updatedAt: Date.now() }));
+    await fetch("https://api.jsonbin.io/v3/b/" + JSONBIN_BIN_ID, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", "X-Master-Key": JSONBIN_API_KEY },
+      body: JSON.stringify(bots)
+    });
+  } catch {}
+}
+
 let currentCharId = 1;
 let messages = [];
 let activeCategory = "all";
@@ -129,8 +170,35 @@ function openSettings() {
   const p=document.getElementById("customColorPicker"); if(p)p.value=settings.accentColor;
   const u=document.getElementById("usernameInput"); if(u&&currentUser)u.value=currentUser.name||"";
   renderColorSwatches();
+  // Inject JSONBin fields
+  let jb = document.getElementById("jsonbinSettings");
+  if (!jb) {
+    const panel = document.querySelector(".settings-panel");
+    if (panel) {
+      const binId = localStorage.getItem("deviluke_jsonbin_id") || "";
+      const binKey = localStorage.getItem("deviluke_jsonbin_key") || "";
+      jb = document.createElement("div");
+      jb.id = "jsonbinSettings";
+      jb.style.cssText = "margin-top:16px;padding-top:16px;border-top:1px solid var(--border)";
+      jb.innerHTML = `
+        <label style="font-weight:600;display:block;margin-bottom:8px">☁ Cloud Sync (JSONBin.io)</label>
+        <input id="jsonbinId" type="text" placeholder="Bin ID" value="${binId.replace(/"/g,'&quot;')}" style="width:100%;padding:8px;border-radius:6px;background:var(--bg-primary);border:1px solid var(--border);color:var(--text-primary);font-size:0.85rem;font-family:inherit;outline:none;margin-bottom:6px;box-sizing:border-box">
+        <input id="jsonbinKey" type="password" placeholder="API Key (X-Master-Key)" value="${binKey.replace(/"/g,'&quot;')}" style="width:100%;padding:8px;border-radius:6px;background:var(--bg-primary);border:1px solid var(--border);color:var(--text-primary);font-size:0.85rem;font-family:inherit;outline:none;box-sizing:border-box">
+        <p style="font-size:0.75rem;color:var(--text-secondary);margin:6px 0 0;line-height:1.4">Free at jsonbin.io — create a bin, then paste its ID and your Master Key here. <br>Bots will sync across all your devices automatically.</p>
+      `;
+      panel.appendChild(jb);
+    }
+  }
 }
-function closeSettings() { document.getElementById("settingsModal").classList.remove("active"); }
+function closeSettings() {
+  document.getElementById("settingsModal").classList.remove("active");
+  const idEl = document.getElementById("jsonbinId");
+  const keyEl = document.getElementById("jsonbinKey");
+  if (idEl && keyEl) {
+    localStorage.setItem("deviluke_jsonbin_id", idEl.value.trim());
+    localStorage.setItem("deviluke_jsonbin_key", keyEl.value.trim());
+  }
+}
 function saveUsername() {
   const input=document.getElementById("usernameInput"); if(!input||!currentUser)return;
   const name=input.value.trim(); if(!name){alert("Username cannot be empty");return;}
@@ -201,8 +269,7 @@ function deleteCustomCharacter(id) {
   customs = customs.filter(c => c.id !== id);
   localStorage.setItem("deviluke_characters", JSON.stringify(customs));
   loadCharacters();
-  renderCharacters();
-  renderChatHistory();
+  syncToCloud();
 }
 
 /* Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ User Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
@@ -1359,6 +1426,7 @@ function createCharacter() {
       customs[idx].imageUrl = imageUrl;
       localStorage.setItem("deviluke_characters", JSON.stringify(customs));
       loadCharacters();
+      syncToCloud();
       alert(`Character "${name}" updated!`);
       window.location.href = "my-bots.html";
       return;
@@ -1375,6 +1443,7 @@ function createCharacter() {
   };
 
   saveCustomCharacter(newChar);
+  syncToCloud();
   fetch('/api/characters',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(newChar)}).catch(()=>{});
   window.location.href="my-bots.html";
 }
@@ -1506,8 +1575,9 @@ function showInstallButton() {
 
 /* Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Init Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
 document.addEventListener("DOMContentLoaded", () => {
-  loadSettings(); applySettings(); loadInterests();
-  loadCharacters(); loadUser();
+  loadSettings(); applySettings();   loadInterests();
+  loadCharacters();
+  syncFromCloud().then(() => { renderCharacters(); renderChatHistory(); }); loadUser();
   autoImportSettings();
 
   try { fetchCharacterImages(); } catch(e) {}
@@ -1600,6 +1670,7 @@ window.addEventListener("pageshow", (e) => {
   if (e.persisted) {
     loadSettings(); applySettings();
     loadCharacters(); loadUser();
+    syncFromCloud().then(() => { renderCharacters(); renderChatHistory(); });
     try { fetchCharacterImages(); } catch(err) {}
     checkPremiumStatus().then(() => { renderNavUser(); });
     initCategoryPills();
