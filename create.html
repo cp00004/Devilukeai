@@ -176,6 +176,11 @@
       const editId = params.get("edit");
       if (editId) {
         setTimeout(function() {
+          if (typeof isAdminUser !== "function" || !isAdminUser()) {
+            alert("Only the bot owner can edit characters.");
+            window.location.href = "my-bots.html";
+            return;
+          }
           loadEditCharacter(editId);
         }, 100);
       }
