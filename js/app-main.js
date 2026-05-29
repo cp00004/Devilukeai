@@ -584,7 +584,9 @@ function renderNavUser() {
     // Wings are ONLY shown when premiumStatus.premium is strictly true — never faked
     const isPremium = premiumStatus && premiumStatus.premium === true;
     const isOwner = isAdminUser();
-    const badge = isOwner ? `<span class="owner-badge" title="Owner">Owner</span>` : isPremium ? `<img src="premium-wings.png" class="premium-badge" title="Premium Member">` : "";
+    const ownerBadge = isOwner ? `<span class="owner-badge" title="Owner">Owner</span>` : "";
+    const wings = isPremium ? `<img src="premium-wings.png" class="premium-badge" title="Premium Member">` : "";
+    const badge = ownerBadge + wings;
     const upg = (isPremium || isOwner) ? "" : `<button class="upgrade-btn" onclick="upgradeToPremium()">Upgrade</button>`;
     const label = isOwner ? "Owner" : currentUser.name;
     c.innerHTML=`<div class="user-dropdown">${badge}<img class="nav-user-img" src="${img}" onclick="toggleDropdown()" title="${currentUser.name}"><div class="user-dropdown-menu" id="userDropdown"><span style="display:block;padding:10px 16px;font-size:0.8rem;color:var(--text-muted);border-bottom:1px solid var(--border)">${label}</span>${upg}<button onclick="logout()">Sign Out</button></div></div>`;
@@ -610,21 +612,12 @@ function renderNavUser() {
 function toggleDropdown() { document.getElementById("userDropdown")?.classList.toggle("show"); }
 document.addEventListener("click",(e)=>{if(!e.target.closest(".user-dropdown"))document.querySelectorAll(".user-dropdown-menu").forEach(m=>m.classList.remove("show"));});
 function logout(){
-  // Clear stored user data and related caches
   localStorage.removeItem('user');
-  // Remove any perâ€‘user data entries (settings, chats, personas, etc.)
   const uid = getUserId();
   try { localStorage.removeItem('deviluke_user_' + uid); } catch(e) {}
-  try { localStorage.removeItem('deviluke_chats_' + uid); } catch(e) {}
-  try { localStorage.removeItem('deviluke_personas_' + uid); } catch(e) {}
-  try { localStorage.removeItem('deviluke_settings'); } catch(e) {}
-  // Reset global user variable
   currentUser = null;
-  // Update navigation UI
   renderNavUser();
-  // Redirect to home page and reload to ensure clean state
   window.location.href = 'index.html';
-  // In case navigation does not trigger a full reload, reload explicitly
   window.location.reload();
 }
 
