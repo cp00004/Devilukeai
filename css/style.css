@@ -374,25 +374,25 @@ a {
 }
 
 .tag {
-  font-size: 0.9rem;
-  font-weight: 600;
-  padding: 3px 10px;
-  border-radius: 20px;
-  background: rgba(239, 68, 68, 0.1);
-  color: var(--accent);
-  border: 1px solid rgba(239, 68, 68, 0.2);
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .tag.nsfw {
-  background: rgba(239, 68, 68, 0.15);
-  color: var(--accent-secondary);
+  background: rgba(239, 68, 68, 0.2);
+  color: #fca5a5;
   border-color: rgba(239, 68, 68, 0.3);
 }
 
 .tag.popular {
-  background: rgba(239, 68, 68, 0.1);
-  color: var(--accent);
-  border-color: rgba(239, 68, 68, 0.2);
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.6);
+  border-color: rgba(255, 255, 255, 0.1);
 }
 
 .character-card .chat-count {
