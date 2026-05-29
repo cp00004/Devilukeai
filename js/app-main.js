@@ -36,7 +36,25 @@ function trackInterest(charId) {
   if (!char) return;
   if (char.category) interestProfile.categories[char.category] = (interestProfile.categories[char.category] || 0) + 1;
   if (char.tags) char.tags.forEach(t => interestProfile.tags[t] = (interestProfile.tags[t] || 0) + 1);
+  localStorage.setItem("deviluke_lastchat_" + getUserId() + "_" + charId, Date.now());
   saveInterests();
+}
+
+function getRecScore(char) {
+  const catScore = interestProfile.categories[char.category] || 0;
+  const tagScore = char.tags.reduce((s, t) => s + ((interestProfile.tags[t] || 0) * 1.5), 0);
+  const msgScore = getLifetimeMsgCount(char.id) * 3;
+  const lastChat = parseInt(localStorage.getItem("deviluke_lastchat_" + getUserId() + "_" + char.id));
+  const recencyScore = lastChat ? Math.max(0, 5 - (Date.now() - lastChat) / 86400000 * 0.2) : 0;
+  return catScore + tagScore + msgScore + recencyScore;
+}
+
+function getForYouChars() {
+  const scored = characters.map(c => ({ char: c, score: getRecScore(c) }));
+  const chatted = scored.filter(s => getLifetimeMsgCount(s.char.id) > 0).sort((a, b) => b.score - a.score);
+  const discovered = scored.filter(s => getLifetimeMsgCount(s.char.id) === 0 && s.score > 1).sort((a, b) => b.score - a.score);
+  const top = [...chatted, ...discovered].slice(0, 15);
+  return top.map(s => s.char);
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -489,7 +507,8 @@ function updateChatPersonaBtn() {
 /* Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Characters Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
 function getCharacter(id) { return characters.find(c=>c.id==id); }
 function getCategoryChars(category) { 
-  if (category === "all" || category === "for-you") return characters;
+  if (category === "for-you") return getForYouChars();
+  if (category === "all") return characters;
   return characters.filter(c=>c.category===category); 
 }
 
@@ -690,6 +709,7 @@ function startChat(charId) {
   saveCurrentChat();
   currentCharId=charId;
   const char=getCharacter(charId); if(!char)return;
+  trackInterest(charId);
   const saved=loadChatData(charId);
   const isNew=!saved||!saved.length;
   messages=saved&&saved.length?saved:[{role:"bot",text:char.greeting,ts:Date.now()}];
