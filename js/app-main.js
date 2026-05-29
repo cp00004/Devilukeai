@@ -1682,39 +1682,81 @@ function _isTranslatable(node) {
 async function _googleTranslate(text, tl) {
   const key = text + "|" + tl;
   if (_transCache[key]) return _transCache[key];
+  const enc = encodeURIComponent(text.slice(0, 2000));
+  let result = "";
+  // Try Google endpoint first
   try {
     const r = await fetch(
-      `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${tl}&dt=t&q=${encodeURIComponent(text.slice(0, 2000))}`
+      "https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=" + tl + "&dt=t&q=" + enc
     );
-    const d = await r.json();
-    const t = d[0].map(s => s[0]).join("");
-    _transCache[key] = t;
+    if (r.ok) {
+      const d = await r.json();
+      result = d[0].map(s => s[0]).join("");
+    }
+  } catch {}
+  if (!result) {
+    // Fallback: MyMemory API
+    try {
+      const r = await fetch(
+        "https://api.mymemory.translated.net/get?q=" + enc + "&langpair=en|" + tl
+      );
+      if (r.ok) {
+        const d = await r.json();
+        result = d.responseData?.translatedText || "";
+      }
+    } catch {}
+  }
+  if (result) {
+    _transCache[key] = result;
     _saveCache();
-    return t;
-  } catch { return text; }
+    return result;
+  }
+  return text;
 }
 
 async function translatePage(tl) {
   if (tl === "en" || !tl) return;
+  console.log("translatePage called, target:", tl);
   _loadCache();
   const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
     acceptNode: n => _isTranslatable(n) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT
   });
   const nodes = [];
   while (walker.nextNode()) nodes.push(walker.currentNode);
+  console.log("translatePage found", nodes.length, "text nodes");
   const unique = [...new Set(nodes.map(n => n.nodeValue.trim()))];
+  console.log("translatePage unique texts:", unique.length, unique.slice(0, 5));
   const uncached = unique.filter(t => !(t + "|" + tl in _transCache));
+  console.log("translatePage uncached:", uncached.length);
   for (let i = 0; i < uncached.length; i += 20) {
     await Promise.all(uncached.slice(i, i + 20).map(t => _googleTranslate(t, tl)));
   }
+  let applied = 0;
   for (const n of nodes) {
     const t = n.nodeValue.trim();
     const key = t + "|" + tl;
     if (_transCache[key] && _transCache[key] !== t) {
       n.nodeValue = n.nodeValue.replace(t, _transCache[key]);
       n.parentElement.setAttribute("data-translated", "1");
+      applied++;
     }
   }
+  console.log("translatePage applied", applied, "translations");
+
+  document.querySelectorAll("[placeholder]").forEach(el => {
+    const p = el.getAttribute("placeholder");
+    if (!p || p.length < 2) return;
+    const key = p + "|" + tl;
+    if (_transCache[key] && _transCache[key] !== p)
+      el.setAttribute("placeholder", _transCache[key]);
+  });
+  document.querySelectorAll("[title]").forEach(el => {
+    const t = el.getAttribute("title");
+    if (!t || t.length < 2) return;
+    const key = t + "|" + tl;
+    if (_transCache[key] && _transCache[key] !== t)
+      el.setAttribute("title", _transCache[key]);
+  });
 }
 
 function setLanguage(lang) {
