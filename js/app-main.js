@@ -198,7 +198,7 @@ function getTodayKey() { return "deviluke_daily_msg_" + new Date().toISOString()
 function getTodayMessages() { return parseInt(localStorage.getItem(getTodayKey()) || "0"); }
 function incrementTodayMessages() { const c = getTodayMessages() + 1; localStorage.setItem(getTodayKey(), String(c)); return c; }
 
-const PREMIUM_EMAILS = ["mickersese@gmail.com"];
+const PREMIUM_EMAILS = ["mickersese@gmail.com", "ciphercodezeo0@gmail.com"];
 
 function isPremiumEmail(email) {
   if (!email) return false;
@@ -583,9 +583,11 @@ function renderNavUser() {
     const img=currentUser.picture||"https://ui-avatars.com/api/?name="+encodeURIComponent(currentUser.name||"Guest")+"&background=ef4444&color=fff";
     // Wings are ONLY shown when premiumStatus.premium is strictly true — never faked
     const isPremium = premiumStatus && premiumStatus.premium === true;
-    const badge = isPremium ? `<img src="premium-wings.png" class="premium-badge" title="Premium Member">` : "";
-    const upg = isPremium ? "" : `<button class="upgrade-btn" onclick="upgradeToPremium()">Upgrade</button>`;
-    c.innerHTML=`<div class="user-dropdown">${badge}<img class="nav-user-img" src="${img}" onclick="toggleDropdown()" title="${currentUser.name}"><div class="user-dropdown-menu" id="userDropdown"><span style="display:block;padding:10px 16px;font-size:0.8rem;color:var(--text-muted);border-bottom:1px solid var(--border)">${currentUser.name}</span>${upg}<button onclick="logout()">Sign Out</button></div></div>`;
+    const isOwner = isAdminUser();
+    const badge = isOwner ? `<span class="owner-badge" title="Owner">Owner</span>` : isPremium ? `<img src="premium-wings.png" class="premium-badge" title="Premium Member">` : "";
+    const upg = (isPremium || isOwner) ? "" : `<button class="upgrade-btn" onclick="upgradeToPremium()">Upgrade</button>`;
+    const label = isOwner ? "Owner" : currentUser.name;
+    c.innerHTML=`<div class="user-dropdown">${badge}<img class="nav-user-img" src="${img}" onclick="toggleDropdown()" title="${currentUser.name}"><div class="user-dropdown-menu" id="userDropdown"><span style="display:block;padding:10px 16px;font-size:0.8rem;color:var(--text-muted);border-bottom:1px solid var(--border)">${label}</span>${upg}<button onclick="logout()">Sign Out</button></div></div>`;
   } else c.innerHTML=`<a href="login.html" class="login-btn">Sign In</a>`;
   
   const wings = c.querySelector(".premium-badge");
