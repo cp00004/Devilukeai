@@ -882,7 +882,7 @@ const GROQ_API_KEY="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";
 const GROQ_MODEL="llama-3.3-70b-versatile";
 
 async function getGroqResponse(messages, character) {
-  const chatHistory=messages.filter(m=>m.role!=="typing"&&!m.text?.startsWith("*Error:")).map(m=>({role:m.role==="bot"?"assistant":"user",content:m.text}));
+  const chatHistory=messages.filter(m=>m.role!=="typing"&&!m.text?.startsWith("*Error:")).map(m=>({role:m.role==="bot"?"assistant":"user",content:String(m.text||"")}));
   const persona=getSelectedPersona();
   const userName=currentUser?.name||"User";
   const personaBlock=persona?`\n\nThe user is roleplaying as: ${persona.name}${persona.description?` â€” ${persona.description}`:""}. Address them as this persona, not as the user.`:"";
@@ -1652,7 +1652,7 @@ function showInstallButton() {
 document.addEventListener("DOMContentLoaded", () => {
   loadSettings(); applySettings();   loadInterests();
   loadCharacters();
-  syncFromCloud().then(() => { renderCharacters(); renderChatHistory(); }); loadUser();
+  syncFromCloud().then(() => { syncToCloud(); renderCharacters(); renderChatHistory(); }); loadUser();
   autoImportSettings();
 
   try { fetchCharacterImages(); } catch(e) {}
@@ -1745,7 +1745,7 @@ window.addEventListener("pageshow", (e) => {
   if (e.persisted) {
     loadSettings(); applySettings();
     loadCharacters(); loadUser();
-    syncFromCloud().then(() => { renderCharacters(); renderChatHistory(); });
+    syncFromCloud().then(() => { syncToCloud(); renderCharacters(); renderChatHistory(); });
     try { fetchCharacterImages(); } catch(err) {}
     checkPremiumStatus().then(() => { renderNavUser(); });
     initCategoryPills();
