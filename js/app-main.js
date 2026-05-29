@@ -1706,6 +1706,11 @@ function waitForSelect(lang, maxAttempts = 20) {
 function setLanguage(lang) {
   localStorage.setItem("deviluke_ai_lang", lang);
   toggleLangDropdown();
+  if (lang === "en") {
+    document.cookie = "googtrans=; path=/; max-age=0";
+    location.reload();
+    return;
+  }
   if (!triggerTranslate(lang)) {
     waitForSelect(lang);
   }
