@@ -1637,6 +1637,7 @@ a {
   border-radius: 10px;
   margin-bottom: 14px;
   object-fit: cover;
+  object-position: top center;
   background: var(--bg-hover);
   display: block;
 }
