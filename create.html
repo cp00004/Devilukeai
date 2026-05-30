@@ -93,6 +93,7 @@
         </div>
         <div style="display:flex;gap:8px;margin-top:6px;align-items:center">
           <span style="font-size:0.8rem;color:var(--text-muted)">or upload from your computer:</span>
+          <button type="button" class="btn btn-secondary" onclick="searchDeviantArt()" style="padding:6px 14px;font-size:0.8rem">🔍 DeviantArt</button>
           <input type="file" id="charImageFile" accept="image/*" style="display:none" onchange="handleImageFile(event)">
           <button type="button" class="btn btn-secondary" style="padding:6px 14px;font-size:0.8rem" onclick="document.getElementById('charImageFile').click()">📁 Choose File</button>
           <span id="fileName" style="font-size:0.75rem;color:var(--text-muted)"></span>
@@ -164,6 +165,17 @@
         </div>
       </div>
       <button class="settings-close-btn" onclick="closeSettings()">Done</button>
+    </div>
+  </div>
+
+  <div class="settings-modal" id="daSearchModal">
+    <div class="settings-panel" style="max-width:700px;max-height:85vh;overflow-y:auto">
+      <h2>🔍 DeviantArt Search</h2>
+      <p class="settings-sub" id="daSearchStatus">Searching for fan art...</p>
+      <div id="daResults" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;margin:16px 0"></div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
+        <button class="btn btn-secondary" onclick="closeDaSearch()">Cancel</button>
+      </div>
     </div>
   </div>
 
