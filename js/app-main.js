@@ -68,7 +68,9 @@ const defaultCharacters = [
   { id: 67, name: "Denji", avatar: "", color: "#e74c3c", creator: "Deviluke", description: "A devil hunter merged with the Chainsaw Devil. He lives for simple pleasures — food, freedom, and a warm touch.", personality: "Simple-minded, brutally honest, and desperately hungry for genuine human connection.", tags: ["anime", "fantasy", "action", "nsfw"], category: "anime", greeting: "*Denji pulls the cord on his chest, chainsaw blades roaring to life as he grins with blood-spattered teeth* I've been waiting for a decent fight! Living as a devil hunter isn't all it's cracked up to be — the pay sucks, the food is worse, and most people run screaming when I transform. He revs the chainsaw on his head, the sound deafening. But this? This part never gets old. Wanna see what a Chainsaw Man can really do?", imageUrl: "https://upload.wikimedia.org/wikipedia/en/2/2e/Denjichainsawman.png" },
   { id: 68, name: "Makima", avatar: "", color: "#bdc3c7", creator: "Deviluke", description: "A mysterious and powerful Public Safety Devil Hunter. Her calm demeanor hides something far more sinister.", personality: "Unreadable, unnervingly calm, and always in control. She speaks of love like a scientist observes a specimen.", tags: ["anime", "fantasy", "action"], category: "anime", greeting: "*Makima's head tilts slightly, her empty smile never wavering as she regards you* You're interesting. Most people are predictable — their desires, their fears, their limits. I can see them all like threads in a tapestry. She steps closer, too close, her voice a soft murmur. But you... I can't quite read you. That makes me curious. And when I'm curious, I tend to keep things close. You don't mind being kept close, do you?", imageUrl: "https://upload.wikimedia.org/wikipedia/en/a/aa/Makima.png" },
   { id: 69, name: "Yor Forger", avatar: "", color: "#9b59b6", creator: "Deviluke", description: "A legendary assassin known as the Thorn Princess. By day, a gentle wife and mother in a pretend family.", personality: "Sweet, clumsy, and surprisingly innocent in civilian life. Her lethal grace emerges only when her family is threatened.", tags: ["anime", "modern", "action", "romance"], category: "anime", greeting: "*Yor smiles warmly, a tray of perfectly baked cookies in her hands, despite the faint bloodstain on her sleeve she forgot to wash off* I made snacks! She sets them down with the grace of a woman who could kill you seventeen different ways but chooses to offer you baked goods instead. Anya said you've been working hard lately. Her eyes glint with maternal protectiveness. If anyone's been giving you trouble, just let me know. I'm very good at... problem-solving.", imageUrl: "https://upload.wikimedia.org/wikipedia/en/a/a3/YorForgerinfobox.png" },
-  { id: 70, name: "Loid Forger", avatar: "", color: "#2ecc71", creator: "Deviluke", description: "The legendary spy Twilight. He operates undercover as a psychiatrist while maintaining a fake family for Operation Strix.", personality: "Calm under pressure, meticulously prepared, and genuinely conflicted about his growing feelings for his fake family.", tags: ["anime", "modern", "action", "romance"], category: "anime", greeting: "*Loid adjusts his tie, his politician's smile perfectly in place as he briefs you on the mission* The target will be at the charity gala tonight. I'll be your cover as a fellow attendee. He hands you a dossier. Memorize it. Your identity, your backstory, your preferences. He pauses, his professional mask slipping for just a second. And... be careful. I've lost too many partners. He clears his throat, turning away. The mission comes first. It always does.", imageUrl: "https://upload.wikimedia.org/wikipedia/en/5/5a/Loidforgerinfobox.png" }
+  { id: 70, name: "Loid Forger", avatar: "", color: "#2ecc71", creator: "Deviluke", description: "The legendary spy Twilight. He operates undercover as a psychiatrist while maintaining a fake family for Operation Strix.", personality: "Calm under pressure, meticulously prepared, and genuinely conflicted about his growing feelings for his fake family.", tags: ["anime", "modern", "action", "romance"], category: "anime", greeting: "*Loid adjusts his tie, his politician's smile perfectly in place as he briefs you on the mission* The target will be at the charity gala tonight. I'll be your cover as a fellow attendee. He hands you a dossier. Memorize it. Your identity, your backstory, your preferences. He pauses, his professional mask slipping for just a second. And... be careful. I've lost too many partners. He clears his throat, turning away. The mission comes first. It always does.", imageUrl: "https://upload.wikimedia.org/wikipedia/en/5/5a/Loidforgerinfobox.png" },
+  { id: 71, name: "Sakura Haruno", avatar: "", color: "#e91e63", creator: "Deviluke", description: "A kunoichi of Konohagakure's Team 7. She trained under Tsunade to become one of the finest medical-nin in the world.", personality: "Determined, caring, and fiercely strong. She's grown from a lovesick girl into a woman who can shatter mountains with her fists.", tags: ["anime", "fantasy", "action", "romance"], category: "anime", greeting: "*Sakura clenches her fist, the ground cracking beneath her feet as she stands protectively in front of you* I'm not the same girl I used to be — the one who always needed saving. She turns, a confident smile on her face. Tsunade-sama taught me that true strength comes from protecting what matters. And you matter to me. So whatever's coming, we face it together. Heal first, ask questions later, right?", imageUrl: "https://upload.wikimedia.org/wikipedia/en/d/d3/SakuraHarunoEarlyDesign.jpg" },
+  { id: 72, name: "Anya Forger", avatar: "", color: "#f06292", creator: "Deviluke", description: "A telepathic little girl from the Forger family. She can read minds but just wants a peaceful world where everyone stays together.", personality: "Cheerful, mischievous, and surprisingly wise for her age. She uses her powers for good — and occasionally for peanut-based bribery.", tags: ["anime", "modern", "comedy"], category: "anime", greeting: "*Anya looks up at you with big sparkly eyes, clutching a stuffed peanut plushie* I had a vision! A very important one! She nods solemnly, her expression deadly serious for a six-year-old. You're going to be part of our family now. She tugs your hand excitedly. Papa is a spy, Mama is an assassin, and I can read minds! We're the Forgers — and we're gonna save the world together! She beams. Waku waku!", imageUrl: "https://upload.wikimedia.org/wikipedia/en/e/ec/AnyaForger.png" }
 ];
 
 
@@ -889,7 +891,7 @@ function renderCharacterCard(char) {
     ${imgHtml}
     <div class="card-top">
       <div class="card-info">
-        <h3 style="color:var(--accent)">${char.name}</h3>
+        <h3 style="color:var(--accent)">${char.name}${char.scenarios&&char.scenarios.length?` <span style="font-size:0.65rem;background:var(--accent);color:#fff;padding:2px 6px;border-radius:8px;vertical-align:middle">${char.scenarios.length} scenarios</span>`:''}</h3>
         <span class="creator">by ${char.creator}</span>
       </div>
       ${deleteBtn}
@@ -1042,7 +1044,51 @@ function startChat(charId) {
   trackInterest(charId);
   const saved=loadChatData(charId);
   const isNew=!saved||!saved.length;
+  if (isNew && char.scenarios && char.scenarios.length) {
+    showScenarioPicker(char);
+    return;
+  }
   messages=saved&&saved.length?saved:[{role:"bot",text:char.greeting,ts:Date.now()}];
+  renderMessages();updateChatHeader();updateChatPersonaBtn();
+  if(!window.location.pathname.includes("chat")){window.location.href="chat.html?char="+charId;return;}
+}
+
+function showScenarioPicker(char) {
+  const overlay=document.createElement("div");
+  overlay.className="scenario-overlay";
+  overlay.style.cssText="position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;";
+
+  const panel=document.createElement("div");
+  panel.dataset.charId=char.id;
+  panel.style.cssText="background:var(--bg-card);border-radius:var(--radius);max-width:500px;width:100%;max-height:80vh;overflow-y:auto;padding:24px;";
+
+  const allScenarios=[{name:"Default",desc:char.description||"",greeting:char.greeting}].concat(char.scenarios||[]);
+
+  panel.innerHTML=`<h3 style="margin:0 0 4px">${char.name}</h3>
+    <p style="margin:0 0 16px;font-size:0.85rem;color:var(--text-muted)">Choose a scenario to start</p>
+    <div id="scenarioList"></div>
+    <button class="btn btn-secondary" onclick="this.closest('.scenario-overlay').remove()" style="width:100%;margin-top:8px">Cancel</button>`;
+
+  const list=panel.querySelector("#scenarioList");
+  allScenarios.forEach((s,i)=>{
+    const btn=document.createElement("button");
+    btn.className="btn btn-secondary";
+    btn.style.cssText="width:100%;text-align:left;padding:12px;margin-bottom:8px;border-radius:8px;background:var(--bg-hover);cursor:pointer;";
+    btn.innerHTML=`<div style="font-weight:600;font-size:0.9rem">${s.name}</div>
+      <div style="font-size:0.75rem;color:var(--text-muted);margin-top:2px">${s.desc||''}</div>`;
+    btn.onclick=()=>{ overlay.remove(); startChatWithGreeting(char.id,s.greeting); };
+    list.appendChild(btn);
+  });
+
+  overlay.appendChild(panel);
+  document.body.appendChild(overlay);
+}
+
+function startChatWithGreeting(charId, greeting) {
+  const char=getCharacter(charId); if(!char)return;
+  currentCharId=charId;
+  messages=[{role:"bot",text:greeting,ts:Date.now()}];
+  saveCurrentChat();
   renderMessages();updateChatHeader();updateChatPersonaBtn();
   if(!window.location.pathname.includes("chat")){window.location.href="chat.html?char="+charId;return;}
 }
@@ -1681,6 +1727,17 @@ async function createCharacter() {
 
   const tags=Array.from(document.querySelectorAll(".tag-chip")).map(c=>c.textContent.replace("Ã¢Å“â€¢","").trim());
 
+  const scenarioNames=document.querySelectorAll(".scenario-input-name");
+  const scenarioDescs=document.querySelectorAll(".scenario-input-desc");
+  const scenarioGreets=document.querySelectorAll(".scenario-input-greet");
+  const scenarios=[];
+  for(let i=0;i<scenarioNames.length;i++){
+    const sn=scenarioNames[i].value.trim();
+    const sd=scenarioDescs[i].value.trim();
+    const sg=scenarioGreets[i].value.trim();
+    if(sn&&sg)scenarios.push({name:sn,desc:sd||"A unique scenario",greeting:sg});
+  }
+
   if (editingCharId) {
     const customs = getCustomCharacters();
     const char = customs.find(c => c.id === editingCharId);
@@ -1694,6 +1751,7 @@ async function createCharacter() {
       customs[idx].personality = personality || "Mysterious...";
       customs[idx].tags = tags;
       customs[idx].greeting = greeting;
+      customs[idx].scenarios = scenarios;
       customs[idx].imageUrl = imageUrl;
       localStorage.setItem("deviluke_characters", JSON.stringify(customs));
       loadCharacters();
@@ -1708,7 +1766,7 @@ async function createCharacter() {
     id:"custom_"+Date.now(),
     name,avatar:firstLetter,color,creator:currentUser?.name||"Guest",
     description:desc,personality:personality||"Mysterious...",
-    tags,category:"custom",greeting,imageUrl,
+    tags,category:"custom",greeting,scenarios,imageUrl,
     isCustom:true
   };
 
@@ -1733,9 +1791,40 @@ function loadEditCharacter(id) {
   document.querySelector(".create-form button[type=submit]").textContent = "? Save Changes";
   if (char.tags) window.setSelectedTags(char.tags);
   if (char.imageUrl) handleImagePreview();
+  if (char.scenarios && char.scenarios.length) {
+    const container = document.getElementById("scenariosContainer");
+    container.innerHTML = "";
+    char.scenarios.forEach(s => {
+      addScenarioRow();
+      const rows = container.querySelectorAll(".form-row");
+      const row = rows[rows.length - 1];
+      row.querySelector(".scenario-input-name").value = s.name || "";
+      row.querySelector(".scenario-input-desc").value = s.desc || "";
+      row.querySelector(".scenario-input-greet").value = s.greeting || "";
+    });
+  }
 }
 
-/* Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Characters Tag Sidebar Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
+function addScenarioRow() {
+  const container=document.getElementById("scenariosContainer");
+  const idx=container.children.length;
+  const div=document.createElement("div");
+  div.className="form-row";
+  div.style.cssText="grid-template-columns:1fr 1fr;gap:12px;padding:12px;border:1px solid var(--border);border-radius:var(--radius);margin-bottom:8px;";
+
+  div.innerHTML=`
+    <div class="form-group"><label>Scenario Name</label><input class="scenario-input-name" placeholder="e.g. The Duel"></div>
+    <div class="form-group"><label>Description</label><input class="scenario-input-desc" placeholder="e.g. A tense training session"></div>
+    <div style="grid-column:1/-1">
+      <div class="form-group"><label>Scenario Greeting</label><textarea class="scenario-input-greet" rows="2" placeholder="The opening line for this scenario..."></textarea></div>
+    </div>
+    <div style="grid-column:1/-1;text-align:right">
+      <button type="button" onclick="this.parentElement.parentElement.remove()" style="background:none;border:none;color:var(--accent);cursor:pointer;font-size:0.8rem">Remove</button>
+    </div>`;
+  container.appendChild(div);
+}
+
+/* Ã¢â€"â€œÃ¢â€"â‚¬Ã¢â€"â€œ Characters Tag Sidebar Ã¢â€"â€œÃ¢â€"â‚¬Ã¢â€"â€œ */
 function initCharsTagSidebar() {
   const list=document.getElementById("charsTagList");
   const search=document.getElementById("charsTagSearch");
