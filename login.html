@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sign In — Deviluke AI</title>
-  <link rel="stylesheet" href="css/style.css?v=42">
+  <title>Sign In ï¿½ Deviluke AI</title>
+  <link rel="stylesheet" href="css/style.css?v=43">
   <link rel="icon" href="d.ai.png?v=2">
   <link rel="manifest" href="manifest.json">
 </head>
@@ -55,6 +55,45 @@
       <h1>Deviluke AI</h1>
       <p class="login-sub">Sign in to save your chats and continue where you left off</p>
 
+      <div id="termsOverlay" class="terms-overlay">
+        <div class="terms-scroll">
+          <div class="terms-header">Terms of Service & Agreement</div>
+          <div class="terms-body">
+            <p><strong>Last updated:</strong> May 30, 2026</p>
+            <p><strong>1. AI-Generated Content</strong></p>
+            <p>Deviluke AI is an artificial intelligence application. All characters, personas, dialogues, and narratives presented within this application are entirely AI-generated. Any resemblance to real persons, living or dead, or actual copyrighted works is purely coincidental and unintentional.</p>
+            <p><strong>2. Fictional Nature</strong></p>
+            <p>All characters and scenarios in this app are fictional creations produced by large language models and generative AI systems. They do not represent real individuals, licensed properties, or official merchandise of any kind.</p>
+            <p><strong>3. Copyright & Intellectual Property</strong></p>
+            <p>Character names and likenesses may reference popular culture for contextual purposes only. The creator of this application does not claim ownership of any referenced intellectual property. All rights belong to their respective owners. This application is a fan-made, non-commercial AI experimentation platform.</p>
+            <p><strong>4. Limitation of Liability</strong></p>
+            <p>By using this application, you expressly agree that the creator, developer, and any associated parties shall not be held liable for any claims, damages, losses, or legal actions including but not limited to:</p>
+            <ul>
+              <li>Copyright or trademark infringement claims</li>
+              <li>Defamation, libel, or slander</li>
+              <li>Emotional distress or psychological harm</li>
+              <li>Any civil or criminal charges</li>
+            </ul>
+            <p><strong>5. User Responsibility</strong></p>
+            <p>You acknowledge that AI-generated content may produce unpredictable or unintended outputs. You use this service at your own risk. You agree not to hold the creator legally or financially responsible for any content generated, displayed, or inferred by this application.</p>
+            <p><strong>6. No Arrest, No Charges, No Lawsuits</strong></p>
+            <p>You explicitly waive any right to pursue legal action, file criminal charges, request arrests, or seek financial restitution against the creator of Deviluke AI for any reason arising from the use of this application â€” including but not limited to copyright concerns, character depictions, or AI-generated dialogue.</p>
+            <p><strong>7. Indemnification</strong></p>
+            <p>You agree to indemnify and hold harmless the creator of Deviluke AI from any claims, damages, or expenses arising from your use of this application or your violation of these terms.</p>
+            <p><strong>8. Modification</strong></p>
+            <p>These terms may be updated at any time. Continued use of the application after changes constitutes acceptance of the new terms.</p>
+          </div>
+        </div>
+        <div class="terms-agree-row">
+          <label class="terms-checkbox-label">
+            <input type="checkbox" id="termsCheckbox" onchange="document.getElementById('agreeBtn').disabled=!this.checked">
+            <span>I have read and agree to the Terms of Service</span>
+          </label>
+          <button class="btn btn-primary" id="agreeBtn" disabled onclick="acceptTerms()">I Agree</button>
+        </div>
+      </div>
+
+      <div id="signInContent" style="display:none">
 <div id="g_id_onload"
      data-client_id="653248309523-6g2jt930qbb4t08mg6d899aoamff45uh.apps.googleusercontent.com"
      data-callback="handleGoogleSignIn"
@@ -73,6 +112,7 @@
       <button class="guest-btn" onclick="handleGuestSignIn()">Continue as Guest</button>
 
       <p class="login-footer">Your chats are saved locally. Signing in with Google keeps them synced.</p>
+      </div>
     </div>
   </div>
 
@@ -113,7 +153,7 @@
     </div>
   </div>
 
-  <script src="js/app-main.js?v=42"></script>
+  <script src="js/app-main.js?v=43"></script>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <script>
   function saveUser(user) {
@@ -172,10 +212,21 @@
     }
   }
 
+  function acceptTerms() {
+    localStorage.setItem("deviluke_terms_accepted", "true");
+    document.getElementById("termsOverlay").style.display = "none";
+    document.getElementById("signInContent").style.display = "block";
+  }
+
   window.onload = () => {
     const user = getUser();
     if (user) {
       window.location.href = "index.html";
+      return;
+    }
+    if (localStorage.getItem("deviluke_terms_accepted")) {
+      document.getElementById("termsOverlay").style.display = "none";
+      document.getElementById("signInContent").style.display = "block";
     }
   };
 </script>

@@ -1215,6 +1215,64 @@ a {
   color: var(--text-muted);
 }
 
+/* ─── Terms & Conditions Overlay ─── */
+.terms-overlay {
+  text-align: left;
+  margin-bottom: 0;
+}
+.terms-overlay .terms-header {
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-bottom: 12px;
+  color: var(--accent);
+  text-align: center;
+  padding-bottom: 10px;
+  border-bottom: 2px solid var(--accent);
+}
+.terms-overlay .terms-scroll {
+  max-height: 340px;
+  overflow-y: auto;
+  padding-right: 6px;
+  margin-bottom: 14px;
+  scrollbar-width: thin;
+}
+.terms-overlay .terms-scroll::-webkit-scrollbar { width: 4px; }
+.terms-overlay .terms-scroll::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 4px; }
+.terms-overlay .terms-body {
+  font-size: 0.78rem;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+.terms-overlay .terms-body p { margin-bottom: 8px; }
+.terms-overlay .terms-body strong { color: var(--text-primary); }
+.terms-overlay .terms-body ul { margin: 4px 0 12px; padding-left: 20px; }
+.terms-overlay .terms-body ul li { margin-bottom: 4px; }
+.terms-overlay .terms-agree-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  border-top: 1px solid var(--border);
+  padding-top: 14px;
+}
+.terms-overlay .terms-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+  flex: 1;
+  min-width: 200px;
+}
+.terms-overlay .terms-checkbox-label input[type=checkbox] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
 /* ─── Settings Modal ─── */
 .settings-modal {
   display: none;
