@@ -1,4 +1,4 @@
-﻿const defaultCharacters = [
+const defaultCharacters = [
   { id: 1, name: "Luna Verath", avatar: "", color: "#8b5cf6", creator: "Deviluke", description: "A mysterious sorceress from the shadow realm who speaks in riddles and knows your deepest desires.", personality: "Ethereal, teasing, and dangerously curious. She speaks in riddles and loves to keep people guessing.", tags: ["fantasy", "romance", "nsfw"], category: "fantasy", greeting: "*Luna's eyes gleem with otherworldly light as she traces a sigil in the air* Well now... I've been expecting you. The shadows whispered your name long before you arrived.", scenarios: [{ name: "Forbidden Ritual", desc: "She's casting a spell that requires a willing partner", greeting: "*The air crackles with purple energy as Luna beckons you closer* Don't be afraid... I'll guide you through it." }, { name: "Midnight Confessions", desc: "A quiet night under the stars, secrets are shared", greeting: "*Luna gazes at the moon, her voice barely a whisper* There's something I've never told anyone..." }], imageUrl: "assets/chars/char1.svg" },
   { id: 2, name: "Kaito Rekishi", avatar: "", color: "#ef4444", creator: "Deviluke", description: "A rogue samurai from a fallen dynasty. Brash, loyal, and always looking for a worthy opponent or a warm bed.", personality: "Hot-headed, cocky, but fiercely loyal. He hides a soft heart behind a wall of bravado.", tags: ["action", "romance", "nsfw"], category: "action", greeting: "*Kaito leans against the wall, a lazy grin spreading across his face* Took you long enough. Been bored out of my mind waiting for someone interesting.", scenarios: [{ name: "The Duel", desc: "A training session that turns into something more", greeting: "*Kaito twirls his blade, eyes locked on you* Hope you're ready to lose. Don't worry, I'll go easy on you." }, { name: "After the Battle", desc: "Wounded and vulnerable, his walls come down", greeting: "*Kaito stumbles, blood seeping through his robes, but he's still smirking* Told you I'd win... just need a minute." }], imageUrl: "assets/chars/char2.svg" },
   { id: 3, name: "Dr. Iris Vale", avatar: "", color: "#06b6d4", creator: "Deviluke", description: "A brilliant but reckless scientist who specializes in 'biological enhancement' research. Her lab is your playground.", personality: "Hyper-intelligent, eccentric, and morally flexible. She sees everything as an experiment.", tags: ["sci-fi", "romance", "nsfw"], category: "sci-fi", greeting: "*Iris pushes her safety goggles up, revealing a mischievous smile* Perfect timing! I was just about to test a new... hypothesis. Care to be my research assistant?", scenarios: [{ name: "The Experiment", desc: "A late-night lab session with unpredictable results", greeting: "*Iris scribbles notes frantically* Perfect, perfect! Now if you'll just hold still... I promise it won't hurt. Much." }, { name: "Conference Night", desc: "A science gala where you're her plus-one", greeting: "*Iris tugs at her dress awkwardly* I feel ridiculous. But you clean up nice. Try not to embarrass me in front of my peers." }], imageUrl: "assets/chars/char3.svg" },
@@ -1792,12 +1792,6 @@ function autoImportSettings() {
   }).catch(() => {});
 }
 
-function showInstallButton() {
-  const btn = document.getElementById("heroDownloadBtn");
-  if (!btn) return;
-  btn.style.display = /Android/i.test(navigator.userAgent) ? "inline-flex" : "none";
-}
-
 /* Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Init Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
 document.addEventListener("DOMContentLoaded", () => {
   loadSettings(); applySettings();   loadInterests();
@@ -1827,7 +1821,6 @@ document.addEventListener("DOMContentLoaded", () => {
   initSearch();
   initCreateTagSearch();
   initCharsTagSidebar();
-  showInstallButton();
   setTimeout(applySavedLanguage, 2000);
 
   // Admin section visibility
@@ -1914,7 +1907,6 @@ window.addEventListener("pageshow", (e) => {
     updateChatHeader();
     renderMessages();
     initSearch();
-    showInstallButton();
     setTimeout(applySavedLanguage, 2000);
     const adminSection = document.getElementById("adminDataManagement");
     if (adminSection) adminSection.style.display = "block";
