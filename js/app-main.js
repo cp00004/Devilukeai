@@ -1732,46 +1732,95 @@ function pickDaImage(url) {
   closeDaSearch();
 }
 
-async function searchDeviantArt() {
+async function openFanArtSearch() {
   const query = document.getElementById("charName").value.trim();
   if (!query) { alert("Please enter a character name first"); return; }
   document.getElementById("daSearchModal").classList.add("active");
-  document.getElementById("daSearchStatus").textContent = "Searching DeviantArt for \"" + query + "\"...";
-  document.getElementById("daResults").innerHTML = "<div style=\"grid-column:1/-1;text-align:center;padding:40px;color:var(--text-muted)\">Searching...</div>";
-  try {
-    const rssUrl = "https://backend.deviantart.com/rss.xml?q=" + encodeURIComponent("type:deviation " + query + " fan art") + "&limit=30";
-    const resp = await fetch(rssUrl);
-    const xmlText = await resp.text();
-    const parser = new DOMParser();
-    const xml = parser.parseFromString(xmlText, "text/xml");
-    const items = xml.querySelectorAll("item");
-    if (!items.length) {
-      document.getElementById("daResults").innerHTML = "<div style=\"grid-column:1/-1;text-align:center;padding:40px;color:var(--text-muted)\">No results found.</div>";
-      return;
+  const statusEl = document.getElementById("daSearchStatus");
+  const resultsEl = document.getElementById("daResults");
+  statusEl.textContent = "Searching for \"" + query + "\"...";
+  resultsEl.innerHTML = "<div style=\"grid-column:1/-1;text-align:center;padding:40px;color:var(--text-muted)\">Searching multiple sources...</div>";
+
+  const allResults = [];
+
+  async function fetchWithTimeout(url, ms) {
+    ms = ms || 8000;
+    const controller = new AbortController();
+    const id = setTimeout(function() { controller.abort(); }, ms);
+    try {
+      const r = await fetch(url, { signal: controller.signal });
+      clearTimeout(id);
+      return r;
+    } catch (e) {
+      clearTimeout(id);
+      throw e;
     }
-    document.getElementById("daSearchStatus").textContent = "Click a result to auto-fill the image URL";
-    let html = "";
-    items.forEach(item => {
-      const title = item.querySelector("title")?.textContent || "Untitled";
-      const link = item.querySelector("link")?.textContent || "";
-      const artist = item.querySelector("media\\:credit, credit")?.textContent || "Unknown";
-      const thumbs = item.querySelectorAll("media\\:thumbnail, thumbnail");
-      let thumbUrl = "";
+  }
+
+  // Source 1: DeviantArt RSS
+  try {
+    const rssUrl = "https://backend.deviantart.com/rss.xml?q=" + encodeURIComponent("type:deviation " + query + " fan art") + "&limit=20";
+    const resp = await fetchWithTimeout(rssUrl);
+    const xmlText = await resp.text();
+    const xml = new DOMParser().parseFromString(xmlText, "text/xml");
+    xml.querySelectorAll("item").forEach(function(item) {
+      var title = (item.querySelector("title") || {}).textContent || "Untitled";
+      var artist = (item.querySelector("media\\:credit, credit") || {}).textContent || "Unknown";
+      var thumbs = item.querySelectorAll("media\\:thumbnail, thumbnail");
+      var thumbUrl = "";
       if (thumbs.length) {
-        const last = thumbs[thumbs.length - 1];
+        var last = thumbs[thumbs.length - 1];
         thumbUrl = last.getAttribute("url") || "";
       }
-      if (!thumbUrl) return;
-      html += "<div class=\"da-result\" onclick=\"pickDaImage('" + thumbUrl.replace(/'/g, "\\'") + "')\" style=\"cursor:pointer;border-radius:10px;overflow:hidden;background:var(--bg-secondary);border:1px solid var(--border);transition:transform .15s,box-shadow .15s\" onmouseover=\"this.style.transform='scale(1.03)';this.style.boxShadow='0 4px 20px rgba(0,0,0,.3)'\" onmouseout=\"this.style.transform='';this.style.boxShadow=''\">";
-      html += "<img src=\"" + thumbUrl.replace(/'/g, "\\'") + "\" alt=\"" + title.replace(/"/g, "&quot;") + "\" style=\"width:100%;height:160px;object-fit:cover;display:block\" loading=\"lazy\">";
-      html += "<div style=\"padding:8px\"><div style=\"font-size:0.8rem;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap\">" + title.replace(/</g, "&lt;") + "</div><div style=\"font-size:0.7rem;color:var(--text-muted)\">by " + artist.replace(/</g, "&lt;") + "</div></div>";
-      html += "</div>";
+      if (thumbUrl) allResults.push({ source: "DeviantArt", sourceColor: "#05a081", title: title, artist: artist, thumbUrl: thumbUrl });
     });
-    document.getElementById("daResults").innerHTML = html;
-  } catch (e) {
-    console.error("DA search error:", e);
-    document.getElementById("daResults").innerHTML = "<div style=\"grid-column:1/-1;text-align:center;padding:40px;color:var(--text-muted)\">Search failed. Please try again.</div>";
+  } catch (e) { console.error("DA error:", e); }
+
+  // Source 2: Reddit r/fanart
+  try {
+    var redditUrl = "https://www.reddit.com/r/fanart/search.json?q=" + encodeURIComponent(query) + "&restrict_sr=on&sort=top&t=all&limit=15";
+    var resp = await fetchWithTimeout(redditUrl);
+    var json = await resp.json();
+    if (json.data && json.data.children) {
+      json.data.children.forEach(function(child) {
+        var d = child.data;
+        if (d.post_hint === "image" && d.url) {
+          allResults.push({ source: "r/fanart", sourceColor: "#ff4500", title: d.title, artist: "u/" + d.author, thumbUrl: d.url });
+        }
+      });
+    }
+  } catch (e) { console.error("Reddit error:", e); }
+
+  // Deduplicate by thumbUrl
+  var seen = {};
+  var unique = allResults.filter(function(r) {
+    if (seen[r.thumbUrl]) return false;
+    seen[r.thumbUrl] = true;
+    return true;
+  });
+
+  // Interleave sources for variety
+  unique.sort(function() { return Math.random() - 0.5; });
+
+  if (!unique.length) {
+    resultsEl.innerHTML = "<div style=\"grid-column:1/-1;text-align:center;padding:40px;color:var(--text-muted)\">No results found. Try a different character name.</div>";
+    statusEl.textContent = "No results";
+    return;
   }
+
+  statusEl.textContent = unique.length + " result" + (unique.length > 1 ? "s" : "") + " found";
+  var html = "";
+  unique.forEach(function(r) {
+    var escapedUrl = r.thumbUrl.replace(/'/g, "\\'");
+    html += "<div class=\"da-result\" onclick=\"pickDaImage('" + escapedUrl + "')\" style=\"cursor:pointer;border-radius:10px;overflow:hidden;background:var(--bg-secondary);border:1px solid var(--border);transition:transform .15s,box-shadow .15s\" onmouseover=\"this.style.transform='scale(1.03)';this.style.boxShadow='0 4px 20px rgba(0,0,0,.3)'\" onmouseout=\"this.style.transform='';this.style.boxShadow=''\">";
+    html += "<div style=\"position:relative\">";
+    html += "<img src=\"" + escapedUrl + "\" alt=\"" + r.title.replace(/"/g, "&quot;") + "\" style=\"width:100%;height:160px;object-fit:cover;display:block\" loading=\"lazy\" onerror=\"this.closest('.da-result').style.display='none'\">";
+    html += "<span style=\"position:absolute;top:4px;right:4px;background:" + r.sourceColor + ";color:#fff;font-size:0.65rem;padding:2px 6px;border-radius:4px;font-weight:600\">" + r.source + "</span>";
+    html += "</div>";
+    html += "<div style=\"padding:8px\"><div style=\"font-size:0.8rem;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap\">" + r.title.replace(/</g, "&lt;") + "</div><div style=\"font-size:0.7rem;color:var(--text-muted)\">" + r.artist.replace(/</g, "&lt;") + "</div></div>";
+    html += "</div>";
+  });
+  resultsEl.innerHTML = html;
 }
 
 async function createCharacter() {
