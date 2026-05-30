@@ -121,12 +121,21 @@ function compressImage(dataUrl, maxW=120, quality=0.6) {
   });
 }
 
+function _getDeletedIds() {
+  try { return JSON.parse(localStorage.getItem("deviluke_deleted_bots") || "[]"); } catch { return []; }
+}
+
 function _cloudMergeBots(local, remote) {
   const now = Date.now();
+  const deleted = new Set(_getDeletedIds());
   const map = {};
-  for (const b of local) map[String(b.id)] = { ...b };
+  for (const b of local) {
+    if (deleted.has(String(b.id))) continue;
+    map[String(b.id)] = { ...b };
+  }
   for (const b of remote) {
     const id = String(b.id);
+    if (deleted.has(id)) continue;
     if (map[id]) {
       if ((b.updatedAt || 0) > (map[id].updatedAt || 0)) {
         map[id] = { ...b, updatedAt: now };
@@ -273,6 +282,7 @@ async function syncToCloud() {
     });
     if (putr.ok) {
       console.log("syncToCloud: success");
+      localStorage.removeItem("deviluke_deleted_bots");
       updateSyncStatus("ok", "Uploaded " + mergedBots.length + " bots");
     } else {
       const errText = await putr.text().catch(() => "");
@@ -532,6 +542,9 @@ function deleteCustomCharacter(id) {
   let customs = getCustomCharacters();
   customs = customs.filter(c => c.id !== id);
   localStorage.setItem("deviluke_characters", JSON.stringify(customs));
+  const deleted = _getDeletedIds();
+  if (!deleted.includes(String(id))) deleted.push(String(id));
+  localStorage.setItem("deviluke_deleted_bots", JSON.stringify(deleted));
   loadCharacters();
   syncToCloud();
 }
