@@ -1814,6 +1814,79 @@ async function openFanArtSearch() {
   resultsEl.innerHTML = html;
 }
 
+async function searchCharacterAI() {
+  const name = document.getElementById("charName").value.trim();
+  if (!name) { alert("Please enter a character name first"); return; }
+  const btn = document.getElementById("aiFillBtn");
+  if (btn) { btn.disabled = true; btn.textContent = "Searching..."; }
+  try {
+    // Search Wikipedia
+    const searchUrl = "https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=" + encodeURIComponent(name) + "&format=json&origin=*&srlimit=5";
+    const resp = await fetch(searchUrl);
+    const data = await resp.json();
+    if (!data.query?.search?.length) {
+      alert("Could not find \"" + name + "\" on Wikipedia. Try a different name.");
+      if (btn) { btn.disabled = false; btn.textContent = "AI Fill"; }
+      return;
+    }
+    const pageTitle = data.query.search[0].title;
+    const extractUrl = "https://en.wikipedia.org/w/api.php?action=query&titles=" + encodeURIComponent(pageTitle) + "&prop=extracts&exintro&explaintext&format=json&origin=*";
+    const extResp = await fetch(extractUrl);
+    const extData = await extResp.json();
+    const pages = extData.query?.pages;
+    const page = Object.values(pages)[0];
+    if (!page?.extract) {
+      alert("No description found for \"" + pageTitle + "\".");
+      if (btn) { btn.disabled = false; btn.textContent = "AI Fill"; }
+      return;
+    }
+    const extract = page.extract;
+    document.getElementById("charDesc").value = extract.length > 250 ? extract.substring(0, extract.lastIndexOf(" ", 247)) + "..." : extract;
+    // Generate personality from the extract
+    var firstSentence = extract.split(/[.!?]/)[0].trim();
+    var personality = "A " + pageTitle.split(" ").slice(0, 2).join(" ") + " character. " + firstSentence;
+    document.getElementById("charPersonality").value = personality.length > 300 ? personality.substring(0, 297) + "..." : personality;
+    // Detect tags from categories
+    var catUrl = "https://en.wikipedia.org/w/api.php?action=query&titles=" + encodeURIComponent(pageTitle) + "&prop=categories&format=json&origin=*";
+    try {
+      var catResp = await fetch(catUrl);
+      var catData = await catResp.json();
+      var catPages = catData.query?.pages;
+      var catPage = Object.values(catPages)[0];
+      if (catPage?.categories) {
+        var tagMap = { video_game: ["fantasy", "action", "anime"], anime: ["anime", "fantasy", "action"], film: ["action", "modern", "fantasy"], television: ["modern", "romance", "fantasy"], manga: ["anime", "fantasy", "action"], marvel: ["action", "sci-fi", "modern"], dc: ["action", "modern", "fantasy"], fantasy: ["fantasy", "action", "romance"], "science fiction": ["sci-fi", "action", "modern"], fiction: ["fantasy", "action", "romance"] };
+        var cats = catPage.categories.map(function(c) { return c.title; }).join(" ").toLowerCase();
+        var guessed = ["fantasy", "action", "romance"];
+        for (var key in tagMap) {
+          if (cats.includes(key)) { guessed = tagMap[key]; break; }
+        }
+        // Try adding tags via the tag system
+        guessed.forEach(function(t) {
+          var existing = document.querySelectorAll(".tag-item");
+          var found = false;
+          existing.forEach(function(e) { if (e.textContent.trim() === t) found = true; });
+          if (!found) {
+            var input = document.getElementById("createTagSearch");
+            if (input) {
+              input.value = t;
+              var event = new KeyboardEvent("keydown", { key: "Enter" });
+              input.dispatchEvent(event);
+            }
+          }
+        });
+      }
+    } catch (e) { console.error("Tag fetch error:", e); }
+    // Generate a basic greeting
+    var greeting = "*" + pageTitle.split(" ").slice(0, 1)[0] + " looks at you with a warm smile, clearly interested in what you have to say.* Hello. I've been hoping we'd meet.";
+    document.getElementById("charGreeting").value = greeting;
+    if (btn) { btn.disabled = false; btn.textContent = "AI Auto-fill"; }
+  } catch (e) {
+    console.error("AI search error:", e);
+    alert("Search failed. Check your connection and try again.");
+    if (btn) { btn.disabled = false; btn.textContent = "AI Auto-fill"; }
+  }
+}
+
 async function createCharacter() {
   const name=document.getElementById("charName").value.trim();
   const desc=document.getElementById("charDesc").value.trim();
