@@ -1820,59 +1820,108 @@ async function searchCharacterAI() {
   const btn = document.getElementById("aiFillBtn");
   if (btn) { btn.disabled = true; btn.textContent = "Searching..."; }
   try {
-    const searchUrl = "https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=" + encodeURIComponent(name) + "&format=json&origin=*&srlimit=5";
-    const resp = await fetch(searchUrl);
-    const data = await resp.json();
-    if (!data.query?.search?.length) {
-      alert("Could not find \"" + name + "\" on Wikipedia. Try a different name.");
-      if (btn) { btn.disabled = false; btn.textContent = "AI Auto-fill"; }
-      return;
+    var extract = null;
+    var pageTitle = null;
+    var source = null;
+    var wikiResp = await fetch("https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=" + encodeURIComponent(name) + "&format=json&origin=*&srlimit=3");
+    var wikiData = await wikiResp.json();
+    if (wikiData.query?.search?.length) {
+      pageTitle = wikiData.query.search[0].title;
+      source = "wikipedia";
+      var extResp = await fetch("https://en.wikipedia.org/w/api.php?action=query&titles=" + encodeURIComponent(pageTitle) + "&prop=extracts&exintro&explaintext&format=json&origin=*");
+      var extData = await extResp.json();
+      var pages = extData.query?.pages;
+      var page = Object.values(pages)[0];
+      if (page?.extract) extract = page.extract;
     }
-    const pageTitle = data.query.search[0].title;
-    const extractUrl = "https://en.wikipedia.org/w/api.php?action=query&titles=" + encodeURIComponent(pageTitle) + "&prop=extracts&exintro&explaintext&format=json&origin=*";
-    const extResp = await fetch(extractUrl);
-    const extData = await extResp.json();
-    const pages = extData.query?.pages;
-    const page = Object.values(pages)[0];
-    if (!page?.extract) {
-      alert("No description found for \"" + pageTitle + "\".");
-      if (btn) { btn.disabled = false; btn.textContent = "AI Auto-fill"; }
-      return;
-    }
-    const extract = page.extract;
-    var firstSentence = extract.split(/[.!?]/)[0].trim();
-    var personality = "A " + pageTitle.split(" ").slice(0, 2).join(" ") + " character. " + firstSentence;
-    var fullPersonality = personality + " " + extract.substring(firstSentence.length).trim();
-    document.getElementById("charPersonality").value = fullPersonality.length > 500 ? fullPersonality.substring(0, fullPersonality.lastIndexOf(" ", 497)) + "..." : fullPersonality;
-    var catUrl = "https://en.wikipedia.org/w/api.php?action=query&titles=" + encodeURIComponent(pageTitle) + "&prop=categories&format=json&origin=*";
-    try {
-      var catResp = await fetch(catUrl);
-      var catData = await catResp.json();
-      var catPages = catData.query?.pages;
-      var catPage = Object.values(catPages)[0];
-      if (catPage?.categories) {
-        var tagMap = { video_game: ["fantasy", "action", "anime"], anime: ["anime", "fantasy", "action"], film: ["action", "modern", "fantasy"], television: ["modern", "romance", "fantasy"], manga: ["anime", "fantasy", "action"], marvel: ["action", "sci-fi", "modern"], dc: ["action", "modern", "fantasy"], fantasy: ["fantasy", "action", "romance"], "science fiction": ["sci-fi", "action", "modern"], fiction: ["fantasy", "action", "romance"] };
-        var cats = catPage.categories.map(function(c) { return c.title; }).join(" ").toLowerCase();
-        var guessed = ["fantasy", "action", "romance"];
-        for (var key in tagMap) {
-          if (cats.includes(key)) { guessed = tagMap[key]; break; }
-        }
-        guessed.forEach(function(t) {
-          var existing = document.querySelectorAll(".tag-item");
-          var found = false;
-          existing.forEach(function(e) { if (e.textContent.trim() === t) found = true; });
-          if (!found) {
-            var input = document.getElementById("createTagSearch");
-            if (input) {
-              input.value = t;
-              var event = new KeyboardEvent("keydown", { key: "Enter" });
-              input.dispatchEvent(event);
-            }
+    if (!extract) {
+      var fandomResp = await fetch("https://characters.fandom.com/api.php?action=query&list=search&srsearch=" + encodeURIComponent(name) + "&format=json&srlimit=3&origin=*");
+      var fandomData = await fandomResp.json();
+      if (fandomData.query?.search?.length) {
+        pageTitle = fandomData.query.search[0].title;
+        source = "fandom";
+        var parseResp = await fetch("https://characters.fandom.com/api.php?action=parse&page=" + encodeURIComponent(pageTitle) + "&prop=text&format=json&origin=*");
+        var parseData = await parseResp.json();
+        if (parseData.parse?.text?.["*"]) {
+          var html = parseData.parse.text["*"];
+          var tempDiv = document.createElement("div");
+          tempDiv.innerHTML = html;
+          var paragraphs = tempDiv.querySelectorAll("p");
+          var textParts = [];
+          for (var pi = 0; pi < paragraphs.length && textParts.join(" ").length < 600; pi++) {
+            var pt = paragraphs[pi].textContent.trim();
+            if (pt.length > 20) textParts.push(pt);
           }
-        });
+          extract = textParts.join(" ");
+        }
+        if (!extract) {
+          var fandomBase = "https://characters.fandom.com/wiki/" + encodeURIComponent(pageTitle.replace(/\s+/g, "_"));
+          var fPageResp = await fetch(fandomBase + "?action=raw&origin=*");
+          if (fPageResp.ok) {
+            var raw = await fPageResp.text();
+            var cleaned = raw.replace(/\[\[[^\]]+\]\]/g, "").replace(/'''/g, "").replace(/'''/g, "").replace(/\n{2,}/g, "\n").trim();
+            var lines = cleaned.split("\n").filter(function(l) { return l.trim().length > 20 && !l.trim().startsWith("|") && !l.trim().startsWith("!") && !l.trim().startsWith("{") && !l.trim().startsWith("__") && !l.trim().startsWith("=="); });
+            if (lines.length) extract = lines.slice(0, 6).join(" ");
+          }
+        }
       }
-    } catch (e) { console.error("Tag fetch error:", e); }
-    var greeting = "*" + pageTitle.split(" ").slice(0, 1)[0] + " looks at you with a warm smile, clearly interested in what you have to say.* Hello. I've been hoping we'd meet.";
+    }
+    if (!extract) {
+      var nhSources = ["https://en.wikipedia.org/w/api.php?origin=*&format=json&action=query&list=search&srsearch=" + encodeURIComponent(name + " hentai"), "https://en.wikipedia.org/w/api.php?origin=*&format=json&action=query&list=search&srsearch=" + encodeURIComponent(name + " anime")];
+      for (var si = 0; si < nhSources.length; si++) {
+        var altResp = await fetch(nhSources[si]);
+        var altData = await altResp.json();
+        if (altData.query?.search?.length) {
+          pageTitle = altData.query.search[0].title;
+          source = "wikipedia";
+          var aExtResp = await fetch("https://en.wikipedia.org/w/api.php?action=query&titles=" + encodeURIComponent(pageTitle) + "&prop=extracts&exintro&explaintext&format=json&origin=*");
+          var aExtData = await aExtResp.json();
+          var aPages = aExtData.query?.pages;
+          var aPage = Object.values(aPages)[0];
+          if (aPage?.extract) { extract = aPage.extract; break; }
+        }
+      }
+    }
+    if (!extract) {
+      alert("Could not find \"" + name + "\" on Wikipedia or Characters Wiki. Try a different name.");
+      if (btn) { btn.disabled = false; btn.textContent = "AI Auto-fill"; }
+      return;
+    }
+    var titleWords = pageTitle.split(" ");
+    var personalityText = "A " + titleWords.slice(0, 2).join(" ") + " character. " + extract;
+    document.getElementById("charPersonality").value = personalityText.length > 800 ? personalityText.substring(0, personalityText.lastIndexOf(" ", 797)) + "..." : personalityText;
+    if (source === "wikipedia") {
+      try {
+        var catUrl = "https://en.wikipedia.org/w/api.php?action=query&titles=" + encodeURIComponent(pageTitle) + "&prop=categories&format=json&origin=*";
+        var catResp = await fetch(catUrl);
+        var catData = await catResp.json();
+        var catPages = catData.query?.pages;
+        var catPage = Object.values(catPages)[0];
+        if (catPage?.categories) {
+          var catTagMap = { video_game: ["fantasy", "action", "anime"], anime: ["anime", "fantasy", "action"], film: ["action", "modern", "fantasy"], television: ["modern", "romance", "fantasy"], manga: ["anime", "fantasy", "action"], marvel: ["action", "sci-fi", "modern"], dc: ["action", "modern", "fantasy"], fantasy: ["fantasy", "action", "romance"], "science fiction": ["sci-fi", "action", "modern"], fiction: ["fantasy", "action", "romance"], hentai: ["anime", "romance", "nsfw"], porn: ["nsfw", "romance", "modern"], adult: ["nsfw", "romance", "fantasy"] };
+          var cats = catPage.categories.map(function(c) { return c.title; }).join(" ").toLowerCase();
+          var guessed = ["fantasy", "action", "romance"];
+          for (var key in catTagMap) {
+            if (cats.includes(key)) { guessed = catTagMap[key]; break; }
+          }
+          guessed.forEach(function(t) {
+            var existing = document.querySelectorAll(".tag-item");
+            var found = false;
+            existing.forEach(function(e) { if (e.textContent.trim() === t) found = true; });
+            if (!found) {
+              var input = document.getElementById("createTagSearch");
+              if (input) {
+                input.value = t;
+                var event = new KeyboardEvent("keydown", { key: "Enter" });
+                input.dispatchEvent(event);
+              }
+            }
+          });
+        }
+      } catch (e) { console.error("Tag fetch error:", e); }
+    }
+    var firstName = titleWords[0];
+    var greeting = "*" + firstName + " looks at you with a warm smile, clearly interested in what you have to say.* Hello. I've been hoping we'd meet.";
     document.getElementById("charGreeting").value = greeting;
     if (btn) { btn.disabled = false; btn.textContent = "AI Auto-fill"; }
   } catch (e) {
