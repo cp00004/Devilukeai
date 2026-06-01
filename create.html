@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Create Character — Deviluke AI</title>
-  <link rel="stylesheet" href="css/style.css?v=43">
+  <link rel="stylesheet" href="css/style.css?v=44">
   <link rel="icon" href="d.ai.png?v=2">
   <link rel="manifest" href="manifest.json">
 </head>
@@ -48,7 +48,6 @@
 
   <nav class="navbar">
     <div class="nav-inner">
-      
       <span id="navUser"></span>
       <span id="syncStatus"></span>
       <div class="lang-dropdown">
@@ -79,71 +78,73 @@
     <h1>✨ Create a Character</h1>
     <p class="create-sub">Design your perfect companion — give them a look and personality.</p>
 
-    <form class="create-form" onsubmit="event.preventDefault();createCharacter()">
-      <div class="form-group">
-        <label>Name <span class="req">*</span></label>
-        <input type="text" id="charName" placeholder="e.g. Raven Darkhart" maxlength="40">
-      </div>
-
-      <div class="form-group">
-        <label>Character Image / GIF <span class="req">*</span></label>
-        <div class="image-preview-area">
-          <input type="url" id="charImageUrl" placeholder="Paste image URL (imgur, tenor, etc.)">
-          <div class="image-preview" id="imagePreview"><span>🖼️</span></div>
+    <div class="create-form-wrap">
+      <form class="create-form" onsubmit="event.preventDefault();createCharacter()">
+        <div class="form-group">
+          <label>Name <span class="req">*</span></label>
+          <input type="text" id="charName" placeholder="e.g. Raven Darkhart" maxlength="40">
         </div>
-        <div style="display:flex;gap:8px;margin-top:6px;align-items:center">
-          <span style="font-size:0.8rem;color:var(--text-muted)">or upload from your computer:</span>
-          <button type="button" class="btn btn-secondary" onclick="openFanArtSearch()" style="padding:6px 14px;font-size:0.8rem">🔍 Search Fan Art</button>
-          <input type="file" id="charImageFile" accept="image/*" style="display:none" onchange="handleImageFile(event)">
-          <button type="button" class="btn btn-secondary" style="padding:6px 14px;font-size:0.8rem" onclick="document.getElementById('charImageFile').click()">📁 Choose File</button>
-          <span id="fileName" style="font-size:0.75rem;color:var(--text-muted)"></span>
+
+        <div class="form-group">
+          <label>Character Image / GIF <span class="req">*</span></label>
+          <div class="image-preview-area">
+            <input type="url" id="charImageUrl" placeholder="Paste image URL (imgur, tenor, etc.)">
+            <div class="image-preview" id="imagePreview"><span>🖼️</span></div>
+          </div>
+          <div class="form-image-row">
+            <span class="form-hint" style="font-size:0.8rem;margin:0">or upload from your computer:</span>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="openFanArtSearch()">🔍 Search Fan Art</button>
+            <input type="file" id="charImageFile" accept="image/*" style="display:none" onchange="handleImageFile(event)">
+            <button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('charImageFile').click()">📁 Choose File</button>
+            <span class="file-name" id="fileName"></span>
+          </div>
         </div>
-      </div>
 
-      <div class="form-group">
-        <label>Description <span class="req">*</span></label>
-        <textarea id="charDesc" rows="3" placeholder="A short hook that appears on the character card..." style="flex:1"></textarea>
-      </div>
-
-      <div class="form-group">
-        <label>Personality <span class="req">*</span></label>
-        <div style="display:flex;gap:8px;align-items:flex-start">
-          <textarea id="charPersonality" rows="3" placeholder="Describe their personality in detail — how they act, talk, their quirks..." style="flex:1"></textarea>
-          <button type="button" id="aiFillBtn" class="btn btn-secondary" onclick="searchCharacterAI()" style="padding:6px 14px;font-size:0.8rem;white-space:nowrap;flex-shrink:0">AI Auto-fill</button>
+        <div class="form-group">
+          <label>Description <span class="req">*</span></label>
+          <textarea id="charDesc" rows="3" placeholder="A short hook that appears on the character card..."></textarea>
         </div>
-        <div style="font-size:0.7rem;color:var(--text-muted);margin-top:4px">Enter a character name above, then click AI Auto-fill to search Wikipedia and auto-fill personality, tags, and greeting.</div>
-      </div>
 
-      <div class="form-group">
-        <label>Accent Color</label>
-        <input type="color" id="charColor" value="#ef4444">
-      </div>
-
-      <div class="form-group">
-        <label>Tags</label>
-        <div class="tag-search-bar" style="padding:0">
-          <input type="text" class="tag-search-input" id="createTagSearch" placeholder="Search and add tags (dominant, femboy, milf, submissive...)">
-          <div class="tag-search-results" id="createTagResults"></div>
+        <div class="form-group">
+          <label>Personality <span class="req">*</span></label>
+          <div class="form-inline-group">
+            <textarea id="charPersonality" rows="3" placeholder="Describe their personality in detail — how they act, talk, their quirks..."></textarea>
+            <button type="button" id="aiFillBtn" class="btn btn-secondary btn-sm" onclick="searchCharacterAI()" style="white-space:nowrap;flex-shrink:0">AI Auto-fill</button>
+          </div>
+          <p class="form-hint">Enter a character name above, then click AI Auto-fill to search Wikipedia and auto-fill personality, tags, and greeting.</p>
         </div>
-        <div class="selected-tags" id="selectedTags"></div>
-      </div>
 
-      <div class="form-group">
-        <label>Greeting Message <span class="req">*</span></label>
-        <textarea id="charGreeting" rows="3" placeholder="The first thing your character says when someone starts chatting..."></textarea>
-      </div>
+        <div class="form-group">
+          <label>Accent Color</label>
+          <input type="color" id="charColor" value="#ef4444">
+        </div>
 
-      <div class="form-group">
-        <label>Scenarios <span style="font-weight:400;font-size:0.8rem;color:var(--text-muted)">(alternative greetings for different situations)</span></label>
-        <div id="scenariosContainer"></div>
-        <button type="button" class="btn btn-secondary" onclick="addScenarioRow()" style="margin-top:6px;font-size:0.85rem">+ Add Scenario</button>
-      </div>
+        <div class="form-group">
+          <label>Tags</label>
+          <div class="tag-search-bar" style="padding:0">
+            <input type="text" class="tag-search-input" id="createTagSearch" placeholder="Search and add tags (dominant, femboy, milf, submissive...)">
+            <div class="tag-search-results" id="createTagResults"></div>
+          </div>
+          <div class="selected-tags" id="selectedTags"></div>
+        </div>
 
-      <div class="create-actions">
-        <button type="submit" class="btn btn-primary">✨ Create Character</button>
-        <a href="my-bots.html" class="btn btn-secondary">Cancel</a>
-      </div>
-    </form>
+        <div class="form-group">
+          <label>Greeting Message <span class="req">*</span></label>
+          <textarea id="charGreeting" rows="3" placeholder="The first thing your character says when someone starts chatting..."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>Scenarios <span style="font-weight:400;font-size:0.8rem;color:var(--text-muted)">(alternative greetings for different situations)</span></label>
+          <div class="form-scenarios" id="scenariosContainer"></div>
+          <button type="button" class="btn btn-secondary btn-sm" onclick="addScenarioRow()">+ Add Scenario</button>
+        </div>
+
+        <div class="create-actions">
+          <button type="submit" class="btn btn-primary">✨ Create Character</button>
+          <a href="my-bots.html" class="btn btn-secondary">Cancel</a>
+        </div>
+      </form>
+    </div>
   </div>
 
   <div class="settings-modal" id="settingsModal">
@@ -183,7 +184,7 @@
     </div>
   </div>
 
-  <script src="js/app-main.js?v=45"></script>
+  <script src="js/app-main.js?v=46"></script>
 
   <script>
     document.addEventListener("DOMContentLoaded", function() {
@@ -204,4 +205,3 @@
 
 </body>
 </html>
-

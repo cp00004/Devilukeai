@@ -1241,6 +1241,13 @@ a { color: var(--accent); text-decoration: none; }
 .create-page h1 { font-size: 1.8rem; margin-bottom: 4px; color: var(--accent); }
 .create-page .create-sub { color: var(--text-secondary); margin-bottom: 32px; font-size: 0.9rem; }
 
+.create-form-wrap {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 32px;
+}
+
 .create-form { display: flex; flex-direction: column; gap: 20px; }
 
 .form-row {
@@ -1258,7 +1265,7 @@ a { color: var(--accent); text-decoration: none; }
 .form-group select {
   padding: 10px 14px;
   border-radius: var(--radius);
-  background: var(--bg-card);
+  background: var(--bg-primary);
   border: 1px solid var(--border);
   color: var(--text-primary);
   font-size: 0.9rem;
@@ -1276,6 +1283,62 @@ a { color: var(--accent); text-decoration: none; }
 .form-group .char-count { font-size: 0.75rem; color: var(--text-muted); text-align: right; }
 .form-group select { cursor: pointer; }
 .form-group select option { background: var(--bg-card); color: var(--text-primary); }
+
+.form-image-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 6px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.form-inline-group {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.form-hint {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  margin-top: 4px;
+  line-height: 1.4;
+}
+
+.form-scenarios {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.scenario-row {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.scenario-row-full { grid-column: 1 / -1; }
+.scenario-remove-btn {
+  background: none; border: none; color: var(--accent);
+  cursor: pointer; font-size: 0.8rem; padding: 4px 8px;
+  border-radius: 6px; transition: var(--transition); font-family: inherit;
+}
+.scenario-remove-btn:hover { background: rgba(239,68,68,0.1); }
+
+.file-name {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.btn-sm {
+  padding: 6px 14px !important;
+  font-size: 0.8rem !important;
+}
 
 .tag-selector { display: flex; gap: 8px; flex-wrap: wrap; }
 .tag-option {

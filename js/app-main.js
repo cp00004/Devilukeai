@@ -2029,19 +2029,17 @@ function loadEditCharacter(id) {
 
 function addScenarioRow() {
   const container=document.getElementById("scenariosContainer");
-  const idx=container.children.length;
   const div=document.createElement("div");
-  div.className="form-row";
-  div.style.cssText="grid-template-columns:1fr 1fr;gap:12px;padding:12px;border:1px solid var(--border);border-radius:var(--radius);margin-bottom:8px;";
+  div.className="scenario-row";
 
   div.innerHTML=`
     <div class="form-group"><label>Scenario Name</label><input class="scenario-input-name" placeholder="e.g. The Duel"></div>
     <div class="form-group"><label>Description</label><input class="scenario-input-desc" placeholder="e.g. A tense training session"></div>
-    <div style="grid-column:1/-1">
+    <div class="scenario-row-full">
       <div class="form-group"><label>Scenario Greeting</label><textarea class="scenario-input-greet" rows="2" placeholder="The opening line for this scenario..."></textarea></div>
     </div>
-    <div style="grid-column:1/-1;text-align:right">
-      <button type="button" onclick="this.parentElement.parentElement.remove()" style="background:none;border:none;color:var(--accent);cursor:pointer;font-size:0.8rem">Remove</button>
+    <div class="scenario-row-full" style="text-align:right">
+      <button type="button" class="scenario-remove-btn" onclick="this.closest('.scenario-row').remove()">Remove</button>
     </div>`;
   container.appendChild(div);
 }
