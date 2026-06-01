@@ -329,7 +329,7 @@ let currentUser = null;
 let characters = [];
 
 /* Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Settings & Interests Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
-let settings = { nsfwEnabled: true, accentColor: "#ef4444" };
+let settings = { nsfwEnabled: true, accentColor: "#ef4444", groqApiKey: "" };
 let interestProfile = { tags: {}, categories: {} };
 
 function loadInterests() {
@@ -437,6 +437,7 @@ function openSettings() {
   const t=document.getElementById("nsfwToggle"); if(t)t.checked=settings.nsfwEnabled;
   const p=document.getElementById("customColorPicker"); if(p)p.value=settings.accentColor;
   const u=document.getElementById("usernameInput"); if(u&&currentUser)u.value=currentUser.name||"";
+  const g=document.getElementById("groqApiKeyInput"); if(g)g.value=settings.groqApiKey||"";
   renderColorSwatches();
   // Inject JSONBin fields — only visible to sync owner
   let jb = document.getElementById("jsonbinSettings");
@@ -466,6 +467,8 @@ function openSettings() {
 }
 function closeSettings() {
   document.getElementById("settingsModal").classList.remove("active");
+  const g=document.getElementById("groqApiKeyInput");
+  if(g){settings.groqApiKey=g.value.trim();saveSettings();}
   const idEl = document.getElementById("jsonbinId");
   const keyEl = document.getElementById("jsonbinKey");
   if (idEl && keyEl) {
@@ -1138,10 +1141,12 @@ function renderMessages() {
   }).join("");c.scrollTop=c.scrollHeight;
 }
 
-const GROQ_API_KEY="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";
+const GROQ_API_KEY_FALLBACK="";
 const GROQ_MODEL="llama-3.3-70b-versatile";
 
 async function getGroqResponse(messages, character) {
+  const apiKey = settings.groqApiKey || GROQ_API_KEY_FALLBACK;
+  if (!apiKey) return null;
   const chatHistory=messages.filter(m=>m.role!=="typing"&&!m.text?.startsWith("*Error:")).map(m=>({role:m.role==="bot"?"assistant":"user",content:String(m.text||"")}));
   const persona=getSelectedPersona();
   const userName=currentUser?.name||"User";
@@ -1167,7 +1172,7 @@ Rules:
   try {
     const res=await fetch("https://api.groq.com/openai/v1/chat/completions",{
       method:"POST",
-      headers:{"Content-Type":"application/json","Authorization":`Bearer ${GROQ_API_KEY}`},
+      headers:{"Content-Type":"application/json","Authorization":`Bearer ${apiKey}`},
       body:JSON.stringify({
         model:GROQ_MODEL,
         messages:[{role:"system",content:systemPrompt},...chatHistory],
