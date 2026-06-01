@@ -721,7 +721,7 @@ function getPersonaInitial(name) {
 
 function renderPersonaAvatar(persona, className) {
   if (persona && persona.imageUrl) {
-    return `<div class="${className} persona-avatar-image-wrap"><img src="${persona.imageUrl}" alt="${persona.name || "Persona"}" onerror="this.parentElement.textContent='${getPersonaInitial(persona.name)}'"></div>`;
+    return `<div class="${className} persona-avatar-image-wrap"><img src="${persona.imageUrl}" alt="${persona.name || "Persona"}" referrerpolicy="no-referrer" onerror="this.parentElement.textContent='${getPersonaInitial(persona.name)}'"></div>`;
   }
   const bg = persona?.color || "var(--bg-hover)";
   const label = persona?.avatar || getPersonaInitial(persona?.name);
@@ -895,7 +895,8 @@ function incrementLifetimeMsgCount(charId) {
 function renderCharacterCard(char) {
   const show = settings.nsfwEnabled || !char.tags.includes("nsfw");
   if (!show) return "";
-  const imgHtml = char.imageUrl ? `<img class="card-img" src="${char.imageUrl}" alt="${char.name}" onerror="this.outerHTML='<div class=\\'card-img\\' style=\\'display:flex;align-items:center;justify-content:center;font-size:3rem;background:var(--bg-hover)\\'> </div>'">` : `<div class="card-img" style="display:flex;align-items:center;justify-content:center;font-size:3rem;background:var(--bg-hover)"> </div>`;
+  const initial = char.name[0] || '?';
+  const imgHtml = char.imageUrl ? `<img class="card-img" src="${char.imageUrl}" alt="${char.name}" referrerpolicy="no-referrer" onerror="this.outerHTML='<div class=\\'card-img\\' style=\\'display:flex;align-items:center;justify-content:center;font-size:3rem;background:var(--bg-hover);color:var(--text-secondary)\\'>${initial}</div>'">` : `<div class="card-img" style="display:flex;align-items:center;justify-content:center;font-size:3rem;background:var(--bg-hover);color:var(--text-secondary)">${initial}</div>`;
   const starBadge = (activeCategory === "for-you") ? `<div style="position:absolute; top:8px; right:8px; background:#ffd700; color:#000; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:bold; box-shadow:0 2px 6px rgba(0,0,0,0.8); z-index:10;" title="Recommended for you">FY</div>` : "";
   const sharedTotal=getTotalMsgs(char.id);
   const deleteBtn = char.isCustom && isAdminUser() ? `<button class="card-delete-btn" onclick="event.stopPropagation();if(confirm('Delete &quot;${char.name}&quot;?')){deleteCustomCharacter('${char.id}');location.reload()}">Delete</button>` : "";
@@ -1034,7 +1035,7 @@ function renderChatHistory() {
     const id = typeof c.charId === 'number' ? c.charId : "'" + c.charId + "'";
     const rawId = c.charId;
     const ha = ch.imageUrl
-      ? `<img class="h-avatar-img" src="${ch.imageUrl}" alt="${ch.name}" onerror="this.outerHTML='<span style=\\'font-size:1.1rem\\'>${ch.avatar||ch.name[0]}</span>'">`
+      ? `<img class="h-avatar-img" src="${ch.imageUrl}" alt="${ch.name}" referrerpolicy="no-referrer" onerror="this.outerHTML='<span style=\\'font-size:1.1rem\\'>${ch.avatar||ch.name[0]}</span>'">`
       : `<span style="font-size:1.1rem">${ch.avatar || ch.name[0]}</span>`;
     const safeName = ch.name.replace(/'/g, "\\'");
     return `<div class="chat-history-item" onclick="startChat(${id})" onauxclick="if(event.button===1){event.preventDefault();window.open('chat.html?char=${rawId}','_blank')}">
@@ -1110,11 +1111,11 @@ function updateChatHeader() {
   const ch=getCharacter(currentCharId);
   if(!ch)return;
   const a=document.getElementById("chatAvatar");const n=document.getElementById("chatName");
-  if(a){a.style.background=ch.imageUrl?'transparent':ch.color;if(ch.imageUrl)a.innerHTML=`<img class="h-avatar-img" src="${ch.imageUrl}" alt="${ch.name}" onerror="this.style.display='none'">`;else a.textContent=ch.avatar||ch.name[0];}
+  if(a){a.style.background=ch.imageUrl?'transparent':ch.color;if(ch.imageUrl)a.innerHTML=`<img class="h-avatar-img" src="${ch.imageUrl}" alt="${ch.name}" referrerpolicy="no-referrer" onerror="this.style.display='none';this.parentNode.style.background='${ch.color}'">`;else a.textContent=ch.avatar||ch.name[0];}
   if(n)n.textContent=ch.name;
   const info=document.getElementById("chatCharInfo");
   if(info){
-    const img=ch.imageUrl?`<img class="cci-img" src="${ch.imageUrl}" alt="${ch.name}" onerror="this.style.display='none'">`:'';
+    const img=ch.imageUrl?`<img class="cci-img" src="${ch.imageUrl}" alt="${ch.name}" referrerpolicy="no-referrer" onerror="this.style.display='none'">`:'';
     info.innerHTML=img?`${img}<div class="cci-text"><h4>${ch.name}</h4><p>${ch.personality||ch.description}</p></div>`:'';
   }
 }
@@ -1126,7 +1127,7 @@ function renderMessages() {
   const c=document.getElementById("chatMessages"); if(!c)return;
   const ch=getCharacter(currentCharId);
   const bg=ch?(ch.imageUrl?'transparent':ch.color):'var(--bg-hover)';
-  const ma=ch?(ch.imageUrl?`<img class="msg-avatar-img" src="${ch.imageUrl}" alt="${ch.name}" onerror="this.outerHTML='${ch.avatar||ch.name[0]}'">`:(ch.avatar||ch.name[0])):'';
+  const ma=ch?(ch.imageUrl?`<img class="msg-avatar-img" src="${ch.imageUrl}" alt="${ch.name}" referrerpolicy="no-referrer" onerror="this.outerHTML='${ch.avatar||ch.name[0]}'">`:(ch.avatar||ch.name[0])):'';
   c.innerHTML=messages.map((m,i)=>{
     if(m.role==="typing")return `<div class="message bot"><div class="msg-avatar" style="background:${bg}">${ma}</div><div class="msg-bubble"><div class="typing-indicator"><span></span><span></span><span></span></div></div></div>`;
     const u=m.role==="user";
@@ -1556,7 +1557,7 @@ let editingCharId = null;
 function handleImagePreview() {
   const url=document.getElementById("charImageUrl").value.trim();
   const prev=document.getElementById("imagePreview");
-  if(url){prev.innerHTML=`<img src="${url}" alt="Preview" onerror="this.parentElement.innerHTML='Ã¢ÂÅ’'">`;prev.classList.add("has-image");}
+  if(url){prev.innerHTML=`<img src="${url}" alt="Preview" referrerpolicy="no-referrer" onerror="this.parentElement.innerHTML='Ã¢ÂÅ’'">`;prev.classList.add("has-image");}
   else{prev.innerHTML=`<span>Ã°Å¸â€“Â¼Ã¯Â¸Â</span>`;prev.classList.remove("has-image");}
 }
 
