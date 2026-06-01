@@ -1,4 +1,4 @@
-const CACHE = "deviluke-v3";
+const CACHE = "deviluke-v4";
 const BASE = (self.location.pathname.replace(/\/[^/]*$/, "") || "");
 const FILES = [BASE+"/",BASE+"/index.html",BASE+"/chat.html",BASE+"/create.html",BASE+"/login.html",BASE+"/personas.html",BASE+"/download.html",BASE+"/my-bots.html",BASE+"/d.ai.png",BASE+"/manifest.json",BASE+"/premium-wings.png",BASE+"/deviluke-banner.png"];
 
