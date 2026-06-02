@@ -425,18 +425,8 @@
       <!-- Download Stats -->
       <div class="download-stats">
         <div class="stat-item">
-          <span class="stat-num" id="totalDownloads">0</span>
+          <span class="stat-num" id="totalDownloads">—</span>
           <span class="stat-label">Total Downloads</span>
-        </div>
-        <div class="stat-divider"></div>
-        <div class="stat-item">
-          <span class="stat-num" id="todayDownloads">0</span>
-          <span class="stat-label">Today</span>
-        </div>
-        <div class="stat-divider"></div>
-        <div class="stat-item">
-          <span class="stat-num" id="yourDownloads">0</span>
-          <span class="stat-label">Your Downloads</span>
         </div>
       </div>
 
@@ -520,33 +510,12 @@
 
   <script src="js/app-main.js?v=50"></script>
   <script>
-    // Download counter
+    // Download counter — uses CountAPI for a global count
     (function() {
-      const DL_KEY = 'deviluke_dl_count';
-      const DL_DATE_KEY = 'deviluke_dl_date';
-      const DL_TOTAL_BASE = 0;
-
-      function getStats() {
-        const raw = localStorage.getItem(DL_KEY);
-        const userCount = raw ? parseInt(raw, 10) : 0;
-        const lastDate = localStorage.getItem(DL_DATE_KEY) || '';
-        const today = new Date().toDateString();
-        const isNewDay = lastDate !== today;
-        const todayCount = isNewDay ? 0 : (parseInt(localStorage.getItem('deviluke_dl_today') || '0', 10));
-        return { userCount, lastDate, today, isNewDay, todayCount };
-      }
-
-      function updateDisplay() {
-        const stats = getStats();
-        const totalEl = document.getElementById('totalDownloads');
-        const todayEl = document.getElementById('todayDownloads');
-        const yourEl = document.getElementById('yourDownloads');
-        if (!totalEl) return;
-        const total = DL_TOTAL_BASE + stats.userCount;
-        animateNumber(totalEl, total);
-        animateNumber(todayEl, stats.todayCount);
-        animateNumber(yourEl, stats.userCount);
-      }
+      const API_NS = 'devilukeai';
+      const API_KEY = 'downloads';
+      const COUNT_URL = 'https://api.countapi.xyz/get/' + API_NS + '/' + API_KEY;
+      const HIT_URL = 'https://api.countapi.xyz/hit/' + API_NS + '/' + API_KEY;
 
       function animateNumber(el, target) {
         const current = parseInt(el.textContent.replace(/,/g, ''), 10) || 0;
@@ -564,19 +533,26 @@
         }, 30);
       }
 
-      function recordDownload() {
-        const stats = getStats();
-        const newUserCount = stats.userCount + 1;
-        localStorage.setItem(DL_KEY, String(newUserCount));
-        const newToday = stats.isNewDay ? 1 : stats.todayCount + 1;
-        localStorage.setItem('deviluke_dl_today', String(newToday));
-        localStorage.setItem(DL_DATE_KEY, stats.today);
-        updateDisplay();
+      function fetchCount() {
+        var el = document.getElementById('totalDownloads');
+        if (!el) return;
+        fetch(COUNT_URL).then(function(r) { return r.json(); }).then(function(data) {
+          if (data && typeof data.value === 'number') animateNumber(el, data.value);
+        }).catch(function() { el.textContent = '—'; });
       }
 
-      document.addEventListener("DOMContentLoaded", () => {
-        updateDisplay();
-        const btn = document.getElementById("apkDownloadBtn");
+      function recordDownload() {
+        fetch(HIT_URL).then(function(r) { return r.json(); }).then(function(data) {
+          if (data && typeof data.value === 'number') {
+            var el = document.getElementById('totalDownloads');
+            if (el) animateNumber(el, data.value);
+          }
+        }).catch(function() {});
+      }
+
+      document.addEventListener("DOMContentLoaded", function() {
+        fetchCount();
+        var btn = document.getElementById("apkDownloadBtn");
         if (btn) btn.addEventListener("click", recordDownload);
       });
     })();
