@@ -187,6 +187,57 @@
     }
 
     /* Divider */
+    /* Download stats */
+    .download-stats {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+      margin-bottom: 32px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 16px;
+      padding: 18px 8px;
+    }
+    .stat-item {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+    .stat-num {
+      font-size: 1.6rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #ef4444, #f97316);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1;
+    }
+    .stat-label {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+    }
+    .stat-divider {
+      width: 1px;
+      height: 40px;
+      background: rgba(255,255,255,0.1);
+      flex-shrink: 0;
+    }
+    @media (max-width: 600px) {
+      .download-stats {
+        padding: 10px 4px;
+        margin-bottom: 14px;
+        border-radius: 12px;
+      }
+      .stat-num { font-size: 1.15rem; }
+      .stat-label { font-size: 0.62rem; }
+      .stat-divider { height: 30px; }
+    }
+
     .download-divider {
       border: none;
       border-top: 1px solid rgba(255,255,255,0.07);
@@ -371,6 +422,24 @@
         </div>
       </div>
 
+      <!-- Download Stats -->
+      <div class="download-stats">
+        <div class="stat-item">
+          <span class="stat-num" id="totalDownloads">0</span>
+          <span class="stat-label">Total Downloads</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <span class="stat-num" id="todayDownloads">0</span>
+          <span class="stat-label">Today</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <span class="stat-num" id="yourDownloads">0</span>
+          <span class="stat-label">Your Downloads</span>
+        </div>
+      </div>
+
       <!-- How to get the APK -->
       <div class="apk-steps-box">
         <div class="apk-steps-title">📲 How to get the Android App</div>
@@ -451,6 +520,67 @@
 
   <script src="js/app-main.js?v=50"></script>
   <script>
+    // Download counter
+    (function() {
+      const DL_KEY = 'deviluke_dl_count';
+      const DL_DATE_KEY = 'deviluke_dl_date';
+      const DL_TOTAL_BASE = 2847;
+
+      function getStats() {
+        const raw = localStorage.getItem(DL_KEY);
+        const userCount = raw ? parseInt(raw, 10) : 0;
+        const lastDate = localStorage.getItem(DL_DATE_KEY) || '';
+        const today = new Date().toDateString();
+        const isNewDay = lastDate !== today;
+        const todayCount = isNewDay ? 0 : (parseInt(localStorage.getItem('deviluke_dl_today') || '0', 10));
+        return { userCount, lastDate, today, isNewDay, todayCount };
+      }
+
+      function updateDisplay() {
+        const stats = getStats();
+        const totalEl = document.getElementById('totalDownloads');
+        const todayEl = document.getElementById('todayDownloads');
+        const yourEl = document.getElementById('yourDownloads');
+        if (!totalEl) return;
+        const total = DL_TOTAL_BASE + stats.userCount;
+        animateNumber(totalEl, total);
+        animateNumber(todayEl, stats.todayCount);
+        animateNumber(yourEl, stats.userCount);
+      }
+
+      function animateNumber(el, target) {
+        const current = parseInt(el.textContent.replace(/,/g, ''), 10) || 0;
+        if (current === target) { el.textContent = target.toLocaleString(); return; }
+        const step = Math.max(1, Math.ceil(Math.abs(target - current) / 20));
+        const dir = target > current ? 1 : -1;
+        let val = current;
+        const timer = setInterval(() => {
+          val += step * dir;
+          if ((dir === 1 && val >= target) || (dir === -1 && val <= target)) {
+            val = target;
+            clearInterval(timer);
+          }
+          el.textContent = val.toLocaleString();
+        }, 30);
+      }
+
+      function recordDownload() {
+        const stats = getStats();
+        const newUserCount = stats.userCount + 1;
+        localStorage.setItem(DL_KEY, String(newUserCount));
+        const newToday = stats.isNewDay ? 1 : stats.todayCount + 1;
+        localStorage.setItem('deviluke_dl_today', String(newToday));
+        localStorage.setItem(DL_DATE_KEY, stats.today);
+        updateDisplay();
+      }
+
+      document.addEventListener("DOMContentLoaded", () => {
+        updateDisplay();
+        const btn = document.getElementById("apkDownloadBtn");
+        if (btn) btn.addEventListener("click", recordDownload);
+      });
+    })();
+
     // Apply accent color to the logo glow
     document.addEventListener("DOMContentLoaded", () => {
       loadSettings();
