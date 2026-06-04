@@ -414,6 +414,34 @@ document.addEventListener("DOMContentLoaded", () => {
 function loadSettings() {
   try { const s = localStorage.getItem("deviluke_settings"); if (s) settings = { ...settings, ...JSON.parse(s) }; } catch {}
   migrateMinaNsfw();
+  cleanTagSymbols();
+}
+function cleanTagSymbols() {
+  try {
+    var cleaned = false;
+    var customs = JSON.parse(localStorage.getItem("deviluke_characters") || "[]");
+    customs.forEach(function(c) {
+      if (c.tags) {
+        var orig = c.tags.slice();
+        c.tags = c.tags.map(function(t) { return t.replace(/[Ã¢Å“â€¢×✕]/g, "").trim(); }).filter(Boolean);
+        if (orig.join() !== c.tags.join()) cleaned = true;
+      }
+    });
+    if (cleaned) {
+      localStorage.setItem("deviluke_characters", JSON.stringify(customs));
+      loadCharacters();
+    }
+    var drafts = JSON.parse(localStorage.getItem("deviluke_drafts") || "[]");
+    var dCleaned = false;
+    drafts.forEach(function(d) {
+      if (d.tags) {
+        var orig = d.tags.slice();
+        d.tags = d.tags.map(function(t) { return t.replace(/[Ã¢Å“â€¢×✕]/g, "").trim(); }).filter(Boolean);
+        if (orig.join() !== d.tags.join()) dCleaned = true;
+      }
+    });
+    if (dCleaned) localStorage.setItem("deviluke_drafts", JSON.stringify(drafts));
+  } catch (e) { console.error("Tag cleanup error:", e); }
 }
 function migrateMinaNsfw() {
   try {
@@ -1572,7 +1600,7 @@ function initCreateTagSearch() {
   let selected=[];
 
   function renderChips() {
-    container.innerHTML=selected.map(t=>`<span class="tag-chip" data-tag="${t}">${t}<button class="tag-chip-remove" onclick="removeTag('${t}')">&times;</button></span>`).join("");
+    container.innerHTML=selected.map(t=>`<span class="tag-chip" data-tag="${t}">${t.replace(/[Ã¢Å“â€¢×✕]/g, "")}<button class="tag-chip-remove" onclick="removeTag('${t}')">&times;</button></span>`).join("");
   }
 
   window.removeTag=function(tag) {
@@ -1595,7 +1623,7 @@ function initCreateTagSearch() {
   };
 
   window.setSelectedTags=function(tags) {
-    selected=tags.filter(t=>t);
+    selected=tags.filter(t=>t).map(function(t){return t.replace(/[Ã¢Å“â€¢×✕]/g,"").trim();}).filter(Boolean);
     renderChips();
   };
 
