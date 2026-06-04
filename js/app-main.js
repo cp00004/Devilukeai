@@ -1156,7 +1156,7 @@ async function aiGenerateAvatar() {
   if (btn) { btn.disabled = true; btn.textContent = "✨ Generating..."; }
   try {
     if (typeof puter !== "undefined" && puter.ai) {
-      var imgEl = await puter.ai.txt2img("A cool profile avatar for " + (currentUser.name || "user") + ", circular portrait, vibrant colors, anime style, high quality", { model: "black-forest-labs/flux-schnell" });
+      var imgEl = await puter.ai.txt2img("A cool profile avatar for " + (currentUser.name || "user") + ", circular portrait, vibrant colors, anime style, high quality", { model: "gpt-image-2" });
       var size = 112;
       var c = document.createElement("canvas"); c.width = size; c.height = size;
       var ctx = c.getContext("2d");
