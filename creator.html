@@ -173,7 +173,8 @@
 
       // Follow button
       var fbBtn = document.getElementById("followBtn");
-      if (typeof isFollowingCreator === "function") {
+      var isOwnPage = currentUser && (currentUser.name === creator || (typeof isAdminUser === "function" && isAdminUser() && creator === "Deviluke"));
+      if (typeof isFollowingCreator === "function" && !isOwnPage) {
         fbBtn.style.display = "inline-block";
         fbBtn.textContent = isFollowingCreator(creator) ? "Unfollow" : "Follow";
       } else {
