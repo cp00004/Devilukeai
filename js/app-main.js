@@ -382,7 +382,7 @@ async function testSyncConnection() {
       const rawBots = record.characters || record.bots || (Array.isArray(record) ? record : []);
       const bots = (Array.isArray(rawBots) ? rawBots : []).filter(b => b && b.id);
       if (el) el.textContent = "OK (" + bots.length + " bots)";
-      alert("Connection OK!\nBots in cloud: " + bots.length + "\n\nJSONBin ID: " + JSONBIN_BIN_ID.substring(0, 8) + "...\nAPI Key set: " + (JSONBIN_API_KEY ? "Yes" : "No"));
+      alert("Connection OK!Bots in cloud: " + bots.length + "\n\nJSONBin ID: " + JSONBIN_BIN_ID.substring(0, 8) + "...\nAPI Key set: " + (JSONBIN_API_KEY ? "Yes" : "No"));
     } else {
       if (el) el.textContent = "Failed (" + r.status + ")";
       alert("Connection failed! Status: " + r.status + "\n\nJSONBin ID: " + JSONBIN_BIN_ID.substring(0, 8) + "...\nAPI Key set: " + (JSONBIN_API_KEY ? "Yes" : "No"));
@@ -3064,7 +3064,7 @@ document.addEventListener("click", (e) => {
     setupMobileMenu();
   });
 })();
-\n
+
 /* --- Notifications Logic --- */
 function toggleNotifDropdown() {
   document.getElementById("notifDropdown")?.classList.toggle("show");
