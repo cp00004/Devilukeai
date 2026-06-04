@@ -256,6 +256,15 @@
     <p>Deviluke AI &mdash; 18+ only. All characters are fictional. &copy; 2026</p>
   </footer>
 
+  <script>
+    // Suppress Puter.js WebSocket errors - it's only used as optional AI avatar generation fallback
+    window.addEventListener('error', function(e) {
+      if (e.message && e.message.includes('WebSocket')) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    }, true);
+  </script>
   <script src="https://js.puter.com/v2/"></script>
   <script src="js/app-main.js?v=60"></script>
 
