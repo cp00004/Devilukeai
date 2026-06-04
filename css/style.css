@@ -1297,6 +1297,7 @@ a { color: var(--accent); text-decoration: none; }
   gap: 8px;
   align-items: flex-start;
 }
+.form-inline-group textarea { flex: 1; }
 
 .form-hint {
   font-size: 0.7rem;
