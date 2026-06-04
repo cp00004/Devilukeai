@@ -3064,3 +3064,15 @@ document.addEventListener("click", (e) => {
     setupMobileMenu();
   });
 })();
+\n
+/* --- Notifications Logic --- */
+function toggleNotifDropdown() {
+  document.getElementById("notifDropdown")?.classList.toggle("show");
+}
+window.toggleNotifDropdown = toggleNotifDropdown;
+
+document.addEventListener("click", (e) => {
+  if (!e.target.closest(".notifications-dropdown")) {
+    document.getElementById("notifDropdown")?.classList.remove("show");
+  }
+});
