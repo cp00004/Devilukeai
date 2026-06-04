@@ -75,9 +75,9 @@
           </div>
         </div>
       </div>
-      <div class="notifications-dropdown">
-        <button class="notif-btn" onclick="toggleNotifDropdown()" title="Notifications">
-          &#128276;<span class="notif-badge" id="notifBadge">3</span>
+      <div class="notifications-dropdown" style="position:relative;display:inline-flex;align-items:center;">
+        <button class="notif-btn" onclick="toggleNotifDropdown()" title="Notifications" style="background:transparent;border:none;font-size:1.4rem;cursor:pointer;padding:6px;border-radius:50%;color:#fff;position:relative;display:flex;align-items:center;">
+          &#128276;<span class="notif-badge" id="notifBadge" style="position:absolute;top:0;right:0;background:#ef4444;color:#fff;font-size:0.65rem;font-weight:bold;width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;">3</span>
         </button>
         <div class="notif-dropdown-menu" id="notifDropdown">
           <div class="notif-header">Notifications</div>
