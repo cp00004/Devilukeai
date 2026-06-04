@@ -111,8 +111,19 @@ const presetColors = ["#ef4444", "#ff6b6b", "#ff4500", "#ff0080", "#ff7f50", "#f
 /* --- JSONBin.io Cloud Sync --- */
 const JSONBIN_BIN_ID = localStorage.getItem("deviluke_jsonbin_id") || "6a19cff0ddf5aa59f7757613";
 const JSONBIN_API_KEY = localStorage.getItem("deviluke_jsonbin_key") || "$2a$10$iZS8u8vmb5y/u/BFy/rul.3HAuiXy6bS8RFEJCQqx33eARkL8cXCq";
+const CORS_PROXY = "https://corsproxy.io/?";
 
 function isCloudSyncReady() { return JSONBIN_BIN_ID && JSONBIN_API_KEY; }
+
+async function _jsonbinFetch(url, options) {
+  try {
+    return await fetch(url, options);
+  } catch (e) {
+    console.warn("Direct fetch failed, retrying via CORS proxy:", e.message);
+    const proxyUrl = CORS_PROXY + encodeURIComponent(url);
+    return await fetch(proxyUrl, options);
+  }
+}
 
 /* --- Shared total-message count for all bots (default + custom) --- */
 const _TOTAL_MSGS_KEY = "deviluke_total_msgs";
@@ -207,7 +218,7 @@ async function syncFromCloud() {
   try {
     const url = "https://api.jsonbin.io/v3/b/" + JSONBIN_BIN_ID + "/latest";
     console.log("syncFromCloud: GET", url);
-    const r = await fetch(url, {
+    const r = await _jsonbinFetch(url, {
       headers: { "X-Master-Key": JSONBIN_API_KEY }
     });
     if (!r.ok) {
@@ -261,7 +272,7 @@ async function syncToCloud() {
     let cloudBots = [];
     let cloudMsgs = {};
     try {
-      const r = await fetch("https://api.jsonbin.io/v3/b/" + JSONBIN_BIN_ID + "/latest", {
+      const r = await _jsonbinFetch("https://api.jsonbin.io/v3/b/" + JSONBIN_BIN_ID + "/latest", {
         headers: { "X-Master-Key": JSONBIN_API_KEY }
       });
       if (r.ok) {
@@ -306,10 +317,10 @@ async function syncToCloud() {
 
     const body = JSON.stringify({ characters: mergedBots, totalMsgs: mergedMsgs });
     console.log("syncToCloud: pushing " + mergedBots.length + " merged bots, body size=" + (body.length / 1024).toFixed(0) + "KB");
-    const putr = await fetch("https://api.jsonbin.io/v3/b/" + JSONBIN_BIN_ID, {
+    const putr = await _jsonbinFetch("https://api.jsonbin.io/v3/b/" + JSONBIN_BIN_ID, {
       method: "PUT",
       headers: { "Content-Type": "application/json", "X-Master-Key": JSONBIN_API_KEY },
-      body: body
+      body
     });
     if (putr.ok) {
       console.log("syncToCloud: success");
@@ -335,13 +346,15 @@ async function testSyncConnection() {
   const el = document.getElementById("syncStatusSettings");
   if (el) el.textContent = "Testing…";
   try {
-    const r = await fetch("https://api.jsonbin.io/v3/b/" + JSONBIN_BIN_ID + "/latest", {
+    const r = await _jsonbinFetch("https://api.jsonbin.io/v3/b/" + JSONBIN_BIN_ID + "/latest", {
       headers: { "X-Master-Key": JSONBIN_API_KEY }
     });
     if (r.ok) {
       const data = await r.json();
-      const bots = data.record?.characters || [];
-      if (el) el.textContent = "✓ Connected (" + bots.length + " bots in cloud)";
+      const record = data.record || {};
+      const rawBots = record.characters || record.bots || (Array.isArray(record) ? record : []);
+      const bots = (Array.isArray(rawBots) ? rawBots : []).filter(b => b && b.id);
+      if (el) el.textContent = "OK (" + bots.length + " bots)";
       alert("Connection OK!\nBots in cloud: " + bots.length + "\n\nJSONBin ID: " + JSONBIN_BIN_ID.substring(0, 8) + "...\nAPI Key set: " + (JSONBIN_API_KEY ? "Yes" : "No"));
     } else {
       if (el) el.textContent = "Failed (" + r.status + ")";
