@@ -416,12 +416,12 @@ function loadSettings() {
   migrateMinaNsfw();
 }
 function migrateMinaNsfw() {
-  if (localStorage.getItem("deviluke_nsfw_migrated")) return;
   try {
     const customs = JSON.parse(localStorage.getItem("deviluke_characters") || "[]");
     let changed = false;
     customs.forEach(function(c) {
-      if ((c.name && c.name.toLowerCase().includes("mina ashido") || c.name && c.name.toLowerCase().includes("mina")) && c.tags && !c.tags.includes("nsfw")) {
+      var n = (c.name || "").toLowerCase();
+      if (c.tags && !c.tags.includes("nsfw") && (n.includes("mina") || n.includes("ashido"))) {
         c.tags.push("nsfw");
         changed = true;
       }
@@ -431,7 +431,6 @@ function migrateMinaNsfw() {
       loadCharacters();
     }
   } catch (e) { console.error("Migrate error:", e); }
-  localStorage.setItem("deviluke_nsfw_migrated", "1");
 }
 function saveSettings() { localStorage.setItem("deviluke_settings", JSON.stringify(settings)); applySettings(); apiFetch("/api/settings?userId="+getUserId(), {method:"POST",body:JSON.stringify(settings)}); }
 
@@ -1573,7 +1572,7 @@ function initCreateTagSearch() {
   let selected=[];
 
   function renderChips() {
-    container.innerHTML=selected.map(t=>`<span class="tag-chip">${t}<button class="tag-chip-remove" onclick="removeTag('${t}')">Ã¢Å“â€¢</button></span>`).join("");
+    container.innerHTML=selected.map(t=>`<span class="tag-chip" data-tag="${t}">${t}<button class="tag-chip-remove" onclick="removeTag('${t}')">&times;</button></span>`).join("");
   }
 
   window.removeTag=function(tag) {
@@ -2024,7 +2023,7 @@ function saveDraft() {
     greeting: document.getElementById("charGreeting").value.trim(),
     imageUrl: document.getElementById("charImageUrl").value.trim(),
     color: document.getElementById("charColor").value,
-    tags: Array.from(document.querySelectorAll(".tag-chip")).map(c => c.textContent.replace("✕", "").trim()),
+    tags: Array.from(document.querySelectorAll(".tag-chip")).map(c => c.dataset.tag || c.textContent.replace("×", "").trim()),
     draft: true,
     savedAt: new Date().toISOString()
   };
@@ -2145,7 +2144,7 @@ async function createCharacter() {
     document.getElementById("charImageUrl").value = imageUrl;
   }
 
-  const tags=Array.from(document.querySelectorAll(".tag-chip")).map(c=>c.textContent.replace("Ã¢Å“â€¢","").trim());
+  const tags=Array.from(document.querySelectorAll(".tag-chip")).map(c=>c.dataset.tag||c.textContent.replace("×","").trim());
 
   const scenarioNames=document.querySelectorAll(".scenario-input-name");
   const scenarioDescs=document.querySelectorAll(".scenario-input-desc");
