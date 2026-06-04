@@ -130,7 +130,10 @@
 
         <div class="form-group">
           <label>Greeting Message <span class="req">*</span></label>
-          <textarea id="charGreeting" rows="3" placeholder="The first thing your character says when someone starts chatting..."></textarea>
+          <div class="form-inline-group">
+            <textarea id="charGreeting" rows="3" placeholder="The first thing your character says when someone starts chatting..."></textarea>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="openGreetingAssistant()" style="white-space:nowrap;flex-shrink:0">✨ AI Assist</button>
+          </div>
         </div>
 
         <div class="form-group">
@@ -141,9 +144,15 @@
 
         <div class="create-actions">
           <button type="submit" class="btn btn-primary">✨ Create Character</button>
+          <button type="button" class="btn btn-secondary" onclick="saveDraft()">💾 Save Draft</button>
           <a href="my-bots.html" class="btn btn-secondary">Cancel</a>
         </div>
       </form>
+    </div>
+
+    <div class="drafts-section" id="draftsSection">
+      <h3>📝 Drafts</h3>
+      <div class="drafts-grid" id="draftsGrid"></div>
     </div>
   </div>
 
@@ -170,6 +179,33 @@
         </div>
       </div>
       <button class="settings-close-btn" onclick="closeSettings()">Done</button>
+    </div>
+  </div>
+
+  <div class="settings-modal" id="greetAssistantModal">
+    <div class="settings-panel" style="max-width:500px">
+      <h2>✨ Greeting Assistant</h2>
+      <p class="settings-sub">Describe the scene and I'll write a detailed opening line.</p>
+      <div class="form-group">
+        <label>Setting / Scene</label>
+        <input type="text" id="gaSetting" placeholder="e.g. A dark tavern, a futuristic rooftop, a quiet library...">
+      </div>
+      <div class="form-group">
+        <label>Character's Mood</label>
+        <input type="text" id="gaMood" placeholder="e.g. Mysterious, playful, angry, seductive...">
+      </div>
+      <div class="form-group">
+        <label>What Happens First</label>
+        <textarea id="gaAction" rows="2" placeholder="e.g. They notice you walk in, they're wounded, they approach you..."></textarea>
+      </div>
+      <div class="form-group">
+        <label>User's Role</label>
+        <input type="text" id="gaUserRole" placeholder="e.g. A stranger, an old friend, a rival, a prisoner...">
+      </div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">
+        <button class="btn btn-secondary" onclick="closeGreetingAssistant()">Cancel</button>
+        <button class="btn btn-primary" onclick="generateGreeting()">✨ Generate</button>
+      </div>
     </div>
   </div>
 
@@ -200,6 +236,7 @@
           loadEditCharacter(editId);
         }, 100);
       }
+      setTimeout(renderDrafts, 200);
     });
   </script>
 

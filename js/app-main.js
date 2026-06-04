@@ -1981,6 +1981,135 @@ async function searchCharacterAI() {
   }
 }
 
+/* --- Drafts --- */
+function getDrafts() {
+  const d = localStorage.getItem("deviluke_drafts");
+  if (d) { try { return JSON.parse(d); } catch {} }
+  return [];
+}
+
+function saveDrafts(drafts) {
+  localStorage.setItem("deviluke_drafts", JSON.stringify(drafts));
+  renderDrafts();
+}
+
+function saveDraft() {
+  const name = document.getElementById("charName").value.trim();
+  if (!name) { alert("Please enter at least a character name before saving a draft."); return; }
+  const drafts = getDrafts();
+  const draft = {
+    id: "draft_" + Date.now(),
+    name: name,
+    description: document.getElementById("charDesc").value.trim(),
+    personality: document.getElementById("charPersonality").value.trim(),
+    greeting: document.getElementById("charGreeting").value.trim(),
+    imageUrl: document.getElementById("charImageUrl").value.trim(),
+    color: document.getElementById("charColor").value,
+    tags: Array.from(document.querySelectorAll(".tag-chip")).map(c => c.textContent.replace("✕", "").trim()),
+    draft: true,
+    savedAt: new Date().toISOString()
+  };
+  const existing = document.querySelector("#draftsGrid .draft-card[data-id='" + draft.id + "']");
+  if (existing) {
+    const idx = drafts.findIndex(d => d.id === draft.id);
+    if (idx >= 0) drafts[idx] = draft;
+    else drafts.push(draft);
+  } else {
+    drafts.push(draft);
+  }
+  saveDrafts(drafts);
+  alert('Draft "' + name + '" saved!');
+}
+
+function loadDraft(id) {
+  const drafts = getDrafts();
+  const draft = drafts.find(d => d.id === id);
+  if (!draft) return;
+  document.getElementById("charName").value = draft.name || "";
+  document.getElementById("charDesc").value = draft.description || "";
+  document.getElementById("charPersonality").value = draft.personality || "";
+  document.getElementById("charGreeting").value = draft.greeting || "";
+  document.getElementById("charImageUrl").value = draft.imageUrl || "";
+  document.getElementById("charColor").value = draft.color || "#ef4444";
+  if (draft.tags) window.setSelectedTags(draft.tags);
+  if (draft.imageUrl) handleImagePreview();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function deleteDraft(id) {
+  let drafts = getDrafts();
+  drafts = drafts.filter(d => d.id !== id);
+  saveDrafts(drafts);
+}
+
+function renderDrafts() {
+  const grid = document.getElementById("draftsGrid");
+  const section = document.getElementById("draftsSection");
+  if (!grid) return;
+  const drafts = getDrafts();
+  if (drafts.length === 0) { section.style.display = "none"; return; }
+  section.style.display = "block";
+  grid.innerHTML = drafts.map(function(d) {
+    return '<div class="draft-card" data-id="' + d.id + '">' +
+      '<span class="draft-badge">Draft</span>' +
+      '<h4>' + d.name + '</h4>' +
+      '<p>' + (d.description || "No description") + '</p>' +
+      '<div class="draft-card-actions">' +
+        '<button class="btn btn-primary btn-sm" onclick="loadDraft(\'' + d.id + '\')">Load</button>' +
+        '<button class="btn btn-sm" style="background:crimson;color:#fff;border:none" onclick="deleteDraft(\'' + d.id + '\')">Delete</button>' +
+      '</div>' +
+    '</div>';
+  }).join("");
+}
+
+/* --- Greeting Assistant --- */
+function openGreetingAssistant() {
+  document.getElementById("greetAssistantModal").classList.add("active");
+}
+
+function closeGreetingAssistant() {
+  document.getElementById("greetAssistantModal").classList.remove("active");
+}
+
+async function generateGreeting() {
+  const name = document.getElementById("charName").value.trim();
+  const personality = document.getElementById("charPersonality").value.trim();
+  const setting = document.getElementById("gaSetting").value.trim();
+  const mood = document.getElementById("gaMood").value.trim();
+  const action = document.getElementById("gaAction").value.trim();
+  const userRole = document.getElementById("gaUserRole").value.trim();
+  if (!name) { alert("Please enter the character name first."); return; }
+  if (!setting && !mood && !action) { alert("Fill in at least one field (Setting, Mood, or What Happens)."); return; }
+  const btn = document.querySelector("#greetAssistantModal .btn-primary");
+  if (btn) { btn.disabled = true; btn.textContent = "Generating..."; }
+  try {
+    const prompt = "You are writing the opening line for an AI roleplay character. The character's name is " + name + "." +
+      (personality ? " Their personality: " + personality : "") +
+      (setting ? " Setting: " + setting : "") +
+      (mood ? " Character's mood: " + mood : "") +
+      (action ? " What happens: " + action : "") +
+      (userRole ? " User's role: " + userRole : "") +
+      " Write 2-4 sentences of the character's opening dialogue, including an action in *asterisks* and their spoken words. Make it vivid and detailed. Only output the greeting, no extra commentary.";
+    const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Authorization": "Bearer " + GROQ_API_KEY },
+      body: JSON.stringify({ model: GROQ_MODEL, messages: [{ role: "system", content: "You write immersive character opening lines for roleplay. Output only the greeting text." }, { role: "user", content: prompt }], temperature: 0.8, max_tokens: 300 })
+    });
+    if (res.ok) {
+      const data = await res.json();
+      const text = data.choices[0].message.content.trim();
+      if (text) document.getElementById("charGreeting").value = text;
+    } else {
+      alert("Generation failed. Try again.");
+    }
+  } catch (e) {
+    console.error("Greeting generation error:", e);
+    alert("Generation failed. Check your connection.");
+  }
+  if (btn) { btn.disabled = false; btn.textContent = "✨ Generate"; }
+  closeGreetingAssistant();
+}
+
 async function createCharacter() {
   const name=document.getElementById("charName").value.trim();
   const desc=document.getElementById("charDesc").value.trim();
@@ -2043,6 +2172,9 @@ async function createCharacter() {
   };
 
   saveCustomCharacter(newChar);
+  var drafts = getDrafts();
+  drafts = drafts.filter(function(d) { return d.name !== name; });
+  saveDrafts(drafts);
   syncToCloud().then(() => { window.location.href="my-bots.html"; });
   fetch('/api/characters',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(newChar)}).catch(()=>{});
 }
