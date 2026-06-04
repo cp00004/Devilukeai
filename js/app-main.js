@@ -1921,8 +1921,24 @@ async function searchCharacterAI() {
       if (btn) { btn.disabled = false; btn.textContent = "AI Auto-fill"; }
       return;
     }
-    var titleWords = pageTitle.split(" ");
-    var personalityText = "A " + titleWords.slice(0, 2).join(" ") + " character. " + extract;
+    var personalityText = (pageTitle ? pageTitle : name) + " is a character. " + extract;
+    try {
+      var groqRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": "Bearer " + GROQ_API_KEY },
+        body: JSON.stringify({
+          model: GROQ_MODEL,
+          messages: [{ role: "system", content: "You generate character personality descriptions for an AI roleplay app. Given a wiki excerpt about a character, output 3-4 concise sentences covering: 1) their appearance/look, 2) their key features/traits, 3) how they act and behave. Use third-person. Do not add meta commentary or markdown. Just the description." }, { role: "user", content: "Character: " + pageTitle + "\n\nWiki excerpt: " + extract.substring(0, 2000) }],
+          temperature: 0.7,
+          max_tokens: 300
+        })
+      });
+      if (groqRes.ok) {
+        var groqData = await groqRes.json();
+        var groqText = groqData.choices[0].message.content.trim();
+        if (groqText) personalityText = groqText;
+      }
+    } catch (e) { /* fallback to raw extract */ }
     document.getElementById("charPersonality").value = personalityText.length > 800 ? personalityText.substring(0, personalityText.lastIndexOf(" ", 797)) + "..." : personalityText;
     if (source === "wikipedia") {
       try {
