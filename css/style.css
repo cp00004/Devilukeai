@@ -465,7 +465,6 @@ a { color: var(--accent); text-decoration: none; }
 .chat-page {
   display: flex;
   height: 100vh;
-  padding-top: 64px;
 }
 
 .chat-sidebar {
