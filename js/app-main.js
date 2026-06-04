@@ -113,16 +113,23 @@ const JSONBIN_BIN_ID = localStorage.getItem("deviluke_jsonbin_id") || "6a19cff0d
 const JSONBIN_API_KEY = localStorage.getItem("deviluke_jsonbin_key") || "$2a$10$iZS8u8vmb5y/u/BFy/rul.3HAuiXy6bS8RFEJCQqx33eARkL8cXCq";
 const CORS_PROXY = "https://corsproxy.io/?";
 
+const CORS_PROXIES = [
+  "https://corsproxy.io/?url=",
+  "https://api.allorigins.win/raw?url=",
+  "https://cors.api.net/api/?url="
+];
+
 function isCloudSyncReady() { return JSONBIN_BIN_ID && JSONBIN_API_KEY; }
 
 async function _jsonbinFetch(url, options) {
-  try {
-    return await fetch(url, options);
-  } catch (e) {
-    console.warn("Direct fetch failed, retrying via CORS proxy:", e.message);
-    const proxyUrl = CORS_PROXY + encodeURIComponent(url);
-    return await fetch(proxyUrl, options);
+  for (const proxy of CORS_PROXIES) {
+    try {
+      const r = await fetch(proxy + encodeURIComponent(url), options);
+      if (r.ok || r.status !== 0) return r;
+    } catch(e) { continue; }
   }
+  // Last resort — try direct (will fail CORS but preserve error type)
+  return await fetch(url, options);
 }
 
 /* --- Shared total-message count for all bots (default + custom) --- */
