@@ -1155,42 +1155,54 @@ async function aiGenerateAvatar() {
   var btn = event && event.target;
   if (btn) { btn.disabled = true; btn.textContent = "✨ Generating..."; }
   try {
-    var resp = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "Authorization": "Bearer " + GROQ_API_KEY },
-      body: JSON.stringify({
-        model: GROQ_MODEL,
-        messages: [{ role: "system", content: "You are a creative avatar designer. Given a username, respond with ONLY a short visual style description (5-10 words) for a unique profile avatar. Examples: 'neon dragon scales on dark purple' or 'cherry blossoms on pastel sky' or 'cracked ice with aurora glow'. No markdown, no quotes, no commentary. Just the style." }, { role: "user", content: "Username: " + currentUser.name }],
-        temperature: 0.9,
-        max_tokens: 30
-      })
-    });
-    var style = "vibrant gradient";
-    if (resp.ok) {
-      var data = await resp.json();
-      style = (data.choices[0].message.content || "").trim().replace(/[""''.]/g, "") || "vibrant gradient";
+    if (typeof puter !== "undefined" && puter.ai) {
+      var imgEl = await puter.ai.txt2img("A cool profile avatar for " + (currentUser.name || "user") + ", circular portrait, vibrant colors, anime style, high quality", { model: "black-forest-labs/flux-schnell" });
+      var size = 112;
+      var c = document.createElement("canvas"); c.width = size; c.height = size;
+      var ctx = c.getContext("2d");
+      await new Promise(function(res, rej) { imgEl.onload = res; imgEl.onerror = rej; if (imgEl.complete) res(); });
+      ctx.beginPath(); ctx.arc(size/2, size/2, size/2, 0, Math.PI * 2); ctx.closePath();
+      ctx.clip();
+      ctx.drawImage(imgEl, 0, 0, size, size);
+      setAvatar(c.toDataURL());
+    } else {
+      var resp = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": "Bearer " + GROQ_API_KEY },
+        body: JSON.stringify({
+          model: GROQ_MODEL,
+          messages: [{ role: "system", content: "You are a creative avatar designer. Given a username, respond with ONLY a short visual style description (5-10 words) for a unique profile avatar. Examples: 'neon dragon scales on dark purple' or 'cherry blossoms on pastel sky' or 'cracked ice with aurora glow'. No markdown, no quotes, no commentary. Just the style." }, { role: "user", content: "Username: " + currentUser.name }],
+          temperature: 0.9,
+          max_tokens: 30
+        })
+      });
+      var style = "vibrant gradient";
+      if (resp.ok) {
+        var data = await resp.json();
+        style = (data.choices[0].message.content || "").trim().replace(/[""''.]/g, "") || "vibrant gradient";
+      }
+      var hash = 0;
+      for (var i = 0; i < style.length; i++) { hash = style.charCodeAt(i) + ((hash << 5) - hash); hash |= 0; }
+      var hue = Math.abs(hash % 360);
+      var size = 56, half = size / 2;
+      var c = document.createElement("canvas"); c.width = size; c.height = size;
+      var ctx = c.getContext("2d");
+      var grad = ctx.createRadialGradient(half * 0.3, half * 0.3, 2, half, half, half);
+      grad.addColorStop(0, "hsl(" + hue + ",80%," + (50 + Math.abs((hash >> 4) % 15)) + "%)");
+      grad.addColorStop(0.5, "hsl(" + ((hue + 60) % 360) + ",70%," + (40 + Math.abs((hash >> 6) % 15)) + "%)");
+      grad.addColorStop(1, "hsl(" + ((hue + 120) % 360) + ",60%," + (30 + Math.abs((hash >> 8) % 10)) + "%)");
+      ctx.fillStyle = grad; ctx.beginPath(); ctx.arc(half, half, half, 0, Math.PI * 2); ctx.fill();
+      for (var j = 0; j < 6; j++) {
+        var angle = (j / 6) * Math.PI * 2 + Math.abs((hash >> (j * 3)) % 360) * 0.01;
+        var dist = Math.abs((hash >> (j * 4)) % Math.floor(half * 0.6)) + 4;
+        var r = 2 + Math.abs((hash >> (j * 2)) % 5);
+        ctx.fillStyle = "hsla(" + ((hue + 30 * j) % 360) + ",90%,70%,0.25)";
+        ctx.beginPath(); ctx.arc(half + Math.cos(angle) * dist, half + Math.sin(angle) * dist, r, 0, Math.PI * 2); ctx.fill();
+      }
+      ctx.fillStyle = "rgba(255,255,255,0.9)"; ctx.font = "bold " + (size * 0.44) + "px system-ui,sans-serif";
+      ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText((currentUser.name || "?").charAt(0).toUpperCase(), half, half);
+      setAvatar(c.toDataURL());
     }
-    var hash = 0;
-    for (var i = 0; i < style.length; i++) { hash = style.charCodeAt(i) + ((hash << 5) - hash); hash |= 0; }
-    var hue = Math.abs(hash % 360);
-    var size = 56, half = size / 2;
-    var c = document.createElement("canvas"); c.width = size; c.height = size;
-    var ctx = c.getContext("2d");
-    var grad = ctx.createRadialGradient(half * 0.3, half * 0.3, 2, half, half, half);
-    grad.addColorStop(0, "hsl(" + hue + ",80%," + (50 + Math.abs((hash >> 4) % 15)) + "%)");
-    grad.addColorStop(0.5, "hsl(" + ((hue + 60) % 360) + ",70%," + (40 + Math.abs((hash >> 6) % 15)) + "%)");
-    grad.addColorStop(1, "hsl(" + ((hue + 120) % 360) + ",60%," + (30 + Math.abs((hash >> 8) % 10)) + "%)");
-    ctx.fillStyle = grad; ctx.beginPath(); ctx.arc(half, half, half, 0, Math.PI * 2); ctx.fill();
-    for (var j = 0; j < 6; j++) {
-      var angle = (j / 6) * Math.PI * 2 + Math.abs((hash >> (j * 3)) % 360) * 0.01;
-      var dist = Math.abs((hash >> (j * 4)) % Math.floor(half * 0.6)) + 4;
-      var r = 2 + Math.abs((hash >> (j * 2)) % 5);
-      ctx.fillStyle = "hsla(" + ((hue + 30 * j) % 360) + ",90%,70%,0.25)";
-      ctx.beginPath(); ctx.arc(half + Math.cos(angle) * dist, half + Math.sin(angle) * dist, r, 0, Math.PI * 2); ctx.fill();
-    }
-    ctx.fillStyle = "rgba(255,255,255,0.9)"; ctx.font = "bold " + (size * 0.44) + "px system-ui,sans-serif";
-    ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText((currentUser.name || "?").charAt(0).toUpperCase(), half, half);
-    setAvatar(c.toDataURL());
   } catch (e) {
     regenerateAvatar();
   }
