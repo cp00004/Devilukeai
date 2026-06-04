@@ -360,7 +360,7 @@ let currentUser = null;
 let characters = [];
 
 /* Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Settings & Interests Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
-let settings = { nsfwEnabled: true, accentColor: "#ef4444" };
+let settings = { nsfwEnabled: false, accentColor: "#ef4444" };
 let interestProfile = { tags: {}, categories: {} };
 
 function loadInterests() {
