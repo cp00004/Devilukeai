@@ -111,23 +111,34 @@ const presetColors = ["#ef4444", "#ff6b6b", "#ff4500", "#ff0080", "#ff7f50", "#f
 /* --- JSONBin.io Cloud Sync --- */
 const JSONBIN_BIN_ID = localStorage.getItem("deviluke_jsonbin_id") || "6a19cff0ddf5aa59f7757613";
 const JSONBIN_API_KEY = localStorage.getItem("deviluke_jsonbin_key") || "$2a$10$iZS8u8vmb5y/u/BFy/rul.3HAuiXy6bS8RFEJCQqx33eARkL8cXCq";
+const JSONBIN_PROXY_URL = localStorage.getItem("deviluke_jsonbin_proxy") || "";
+let cloudSyncInFlight = null;
+let cloudSyncDisabledReason = "";
 
-const CORS_PROXIES = [
-  "https://corsproxy.io/?url=",
-  "https://api.allorigins.win/raw?url=",
-  "https://cors.api.net/api/?url="
-];
+function isGitHubPagesHost() {
+  return location.hostname.endsWith(".github.io");
+}
 
-function isCloudSyncReady() { return JSONBIN_BIN_ID && JSONBIN_API_KEY; }
+function getCloudSyncBlockReason() {
+  if (!JSONBIN_BIN_ID || !JSONBIN_API_KEY) return "Missing JSONBin settings";
+  if (isGitHubPagesHost() && !JSONBIN_PROXY_URL) {
+    return "JSONBin sync disabled on GitHub Pages because JSONBin blocks browser CORS. Add a proxy URL in localStorage key deviluke_jsonbin_proxy to enable it.";
+  }
+  return "";
+}
+
+function isCloudSyncReady() {
+  return !getCloudSyncBlockReason();
+}
 
 async function _jsonbinFetch(url, options) {
-  for (const proxy of CORS_PROXIES) {
-    try {
-      const r = await fetch(proxy + encodeURIComponent(url), options);
-      if (r.ok || r.status !== 0) return r;
-    } catch(e) { continue; }
+  if (JSONBIN_PROXY_URL) {
+    return await fetch(JSONBIN_PROXY_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ url, options })
+    });
   }
-  // Last resort — try direct (will fail CORS but preserve error type)
   return await fetch(url, options);
 }
 
@@ -218,59 +229,75 @@ function updateSyncStatus(state, msg) {
 }
 
 async function syncFromCloud() {
-  if (!isCloudSyncReady()) { console.warn("syncFromCloud: cloud not ready"); return; }
-  updateSyncStatus("syncing", "Downloading…");
-  console.log("syncFromCloud: starting fetch from JSONBin");
-  try {
-    const url = "https://api.jsonbin.io/v3/b/" + JSONBIN_BIN_ID + "/latest";
-    console.log("syncFromCloud: GET", url);
-    const r = await _jsonbinFetch(url, {
-      headers: { "X-Master-Key": JSONBIN_API_KEY }
-    });
-    if (!r.ok) {
-      console.warn("syncFromCloud: response not OK", r.status, r.statusText);
-      updateSyncStatus("error", "Download failed (" + r.status + ")");
-      return;
+  const blockReason = getCloudSyncBlockReason();
+  if (blockReason) {
+    if (cloudSyncDisabledReason !== blockReason) {
+      cloudSyncDisabledReason = blockReason;
+      console.warn(blockReason);
+      updateSyncStatus("", "");
     }
-    const data = await r.json();
-    console.log("syncFromCloud: response received", data);
-    const record = data.record || {};
-    const rawBots = record.characters || record.bots || (Array.isArray(record) ? record : []);
-    const remoteBots = (Array.isArray(rawBots) ? rawBots : []).filter(b => b && b.id);
-    console.log("syncFromCloud: found " + remoteBots.length + " remote bots");
-    if (remoteBots.length) {
-      const local = getCustomCharacters();
-      console.log("syncFromCloud: local has " + local.length + " custom bots");
-      const merged = _cloudMergeBots(local, remoteBots);
-      // Preserve local imageUrl if cloud copy has none (e.g. from old stripping)
-      for (const lb of local) {
-        if (lb.imageUrl) {
-          const mb = merged.find(m => String(m.id) === String(lb.id));
-          if (mb && !mb.imageUrl) mb.imageUrl = lb.imageUrl;
+    return false;
+  }
+  if (cloudSyncInFlight) return cloudSyncInFlight;
+  cloudSyncInFlight = (async () => {
+    updateSyncStatus("syncing", "Downloading...");
+    try {
+      const url = "https://api.jsonbin.io/v3/b/" + JSONBIN_BIN_ID + "/latest";
+      const r = await _jsonbinFetch(url, {
+        headers: { "X-Master-Key": JSONBIN_API_KEY }
+      });
+      if (!r.ok) {
+        console.warn("syncFromCloud: response not OK", r.status, r.statusText);
+        updateSyncStatus("error", "Download failed (" + r.status + ")");
+        return false;
+      }
+      const data = await r.json();
+      const record = data.record || {};
+      const rawBots = record.characters || record.bots || (Array.isArray(record) ? record : []);
+      const remoteBots = (Array.isArray(rawBots) ? rawBots : []).filter(b => b && b.id);
+      if (remoteBots.length) {
+        const local = getCustomCharacters();
+        const merged = _cloudMergeBots(local, remoteBots);
+        for (const lb of local) {
+          if (lb.imageUrl) {
+            const mb = merged.find(m => String(m.id) === String(lb.id));
+            if (mb && !mb.imageUrl) mb.imageUrl = lb.imageUrl;
+          }
         }
+        localStorage.setItem("deviluke_characters", JSON.stringify(merged));
+        loadCharacters();
       }
-      localStorage.setItem("deviluke_characters", JSON.stringify(merged));
-      loadCharacters();
-      // Log image status after merge
-      for (const m of merged) {
-        console.log("syncFromCloud: bot", m.name, "has image:", !!m.imageUrl, "size=" + ((m.imageUrl || "").length / 1024).toFixed(0) + "KB");
+      const remoteMsgs = record.totalMsgs || record.interests || {};
+      if (remoteMsgs && typeof remoteMsgs === "object") {
+        const local = _getTotalMsgsMap();
+        for (const [id, count] of Object.entries(remoteMsgs)) {
+          if (typeof count === "number") local[id] = Math.max(local[id] || 0, count);
+        }
+        _saveTotalMsgsMap(local);
       }
-      console.log("syncFromCloud: merged " + merged.length + " bots saved to localStorage");
+      updateSyncStatus("ok", "Downloaded");
+      return true;
+    } catch(e) {
+      console.warn("syncFromCloud skipped:", e.message);
+      updateSyncStatus("", "");
+      return false;
+    } finally {
+      cloudSyncInFlight = null;
     }
-    const remoteMsgs = record.totalMsgs || record.interests || {};
-    if (remoteMsgs && typeof remoteMsgs === "object") {
-      const local = _getTotalMsgsMap();
-      for (const [id, count] of Object.entries(remoteMsgs)) {
-        if (typeof count === "number") local[id] = Math.max(local[id] || 0, count);
-      }
-      _saveTotalMsgsMap(local);
-    }
-    updateSyncStatus("ok", "Downloaded");
-  } catch(e) { console.error("syncFromCloud failed:", e); updateSyncStatus("error", "Error: " + e.message); }
+  })();
+  return cloudSyncInFlight;
 }
 
 async function syncToCloud() {
-  if (!isCloudSyncReady()) { console.warn("syncToCloud: cloud not ready"); return; }
+  const blockReason = getCloudSyncBlockReason();
+  if (blockReason) {
+    if (cloudSyncDisabledReason !== blockReason) {
+      cloudSyncDisabledReason = blockReason;
+      console.warn(blockReason);
+      updateSyncStatus("", "");
+    }
+    return false;
+  }
   updateSyncStatus("syncing", "Uploading…");
   console.log("syncToCloud: starting");
   try {
@@ -341,11 +368,9 @@ async function syncToCloud() {
 }
 
 async function manualSync() {
-  updateSyncStatus("syncing", "Full sync…");
-  console.log("manualSync: starting full sync");
-  await syncFromCloud();
-  await syncToCloud();
-  console.log("manualSync: complete");
+  updateSyncStatus("syncing", "Full sync...");
+  const cloudOk = await syncFromCloud();
+  if (cloudOk) await syncToCloud();
 }
 
 async function testSyncConnection() {
@@ -606,6 +631,7 @@ function loadCharacters() {
 }
 
 async function loadPublicCharacters() {
+  if (isGitHubPagesHost()) return;
   try {
     const res = await fetch('/api/characters');
     if (!res.ok) return;
@@ -753,7 +779,11 @@ function loadUser() {
   return false;
 }
 
-function isNetlify() { return location.hostname !== "localhost" && location.hostname !== "127.0.0.1"; }
+function isNetlify() {
+  return location.hostname !== "localhost" &&
+    location.hostname !== "127.0.0.1" &&
+    !isGitHubPagesHost();
+}
 async function apiFetch(path, opts) {
   if (!isNetlify()) return null;
   try {
@@ -1048,6 +1078,7 @@ function renderCharacters() {
 }
 
 function filterByCreator(creator) {
+  if (location.pathname.endsWith("/creator.html")) return;
   location.href = "creator.html?creator=" + encodeURIComponent(creator);
 }
 
@@ -2247,7 +2278,7 @@ async function createCharacter() {
   drafts = drafts.filter(function(d) { return d.name !== name; });
   saveDrafts(drafts);
   syncToCloud().then(() => { window.location.href="my-bots.html"; });
-  fetch('/api/characters',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(newChar)}).catch(()=>{});
+  if (!isGitHubPagesHost()) fetch('/api/characters',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(newChar)}).catch(()=>{});
 }
 
 function loadEditCharacter(id) {
@@ -2388,8 +2419,8 @@ document.addEventListener("DOMContentLoaded", () => {
   renderMessages();
 
   // Sync cloud bots BEFORE rendering characters so all public bots appear immediately
-  syncFromCloud().then(() => {
-    syncToCloud();
+  syncFromCloud().then((cloudOk) => {
+    if (cloudOk) syncToCloud();
     renderCharacters();
     renderChatHistory();
     if (document.getElementById("myBotsGrid")) renderMyBots();
@@ -2427,7 +2458,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const tagParam = params.get("tag");
   if (tagParam) { activeTagFilters = [tagParam]; const si = document.getElementById("searchInput"); if (si) si.value = ""; initCharsTagSidebar(); renderCharacters(); }
   const creatorParam = params.get("creator");
-  if (creatorParam) { filterByCreator(creatorParam); }
+  if (creatorParam && !location.pathname.endsWith("/creator.html")) { filterByCreator(creatorParam); }
   const qParam = params.get("q");
   if (qParam) { const si = document.getElementById("searchInput"); if (si) { si.value = qParam; si.dispatchEvent(new Event("input")); } }
 
@@ -2451,23 +2482,9 @@ document.addEventListener("DOMContentLoaded", () => {
   loadPublicCharacters();
 
   if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.register(location.pathname.replace(/\/[^/]*$/,"")+"/sw.js").then(reg => {
-      reg.addEventListener("updatefound", () => {
-        const newSW = reg.installing;
-        if (newSW) {
-          newSW.addEventListener("statechange", () => {
-            if (newSW.state === "installed" && navigator.serviceWorker.controller) {
-              reg.update().then(() => {
-                if (reg.active) {
-                  reg.active.postMessage({ action: "skipWaiting" });
-                }
-                window.location.reload();
-              });
-            }
-          });
-        }
-      });
-    }).catch(() => {});
+    navigator.serviceWorker.register(location.pathname.replace(/\/[^/]*$/,"")+"/sw.js")
+      .then(reg => reg.update().catch(() => {}))
+      .catch(() => {});
   }
 });
 
@@ -2479,7 +2496,7 @@ window.addEventListener("pageshow", (e) => {
   if (e.persisted) {
     loadSettings(); applySettings();
     loadCharacters(); loadUser();
-    syncFromCloud().then(() => { syncToCloud(); renderCharacters(); renderChatHistory(); });
+    syncFromCloud().then((cloudOk) => { if (cloudOk) syncToCloud(); renderCharacters(); renderChatHistory(); });
     try { fetchCharacterImages(); } catch(err) {}
     checkPremiumStatus().then(() => { renderNavUser(); });
     initCategoryPills();
