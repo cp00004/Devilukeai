@@ -578,6 +578,7 @@ function openSettings() {
   const t=document.getElementById("nsfwToggle"); if(t)t.checked=settings.nsfwEnabled;
   const p=document.getElementById("customColorPicker"); if(p)p.value=settings.accentColor;
   const u=document.getElementById("usernameInput"); if(u&&currentUser)u.value=currentUser.name||"";
+  refreshSettingsAvatar();
   renderColorSwatches();
   // Inject JSONBin fields — only visible to sync owner
   let jb = document.getElementById("jsonbinSettings");
@@ -1104,12 +1105,112 @@ function filterByCreator(creator) {
 
 /* ─────────────── Character Detail ─────────────── */
 
+function generateUserAvatar(name, size) {
+  size = size || 40;
+  var initials = (name || "?").charAt(0).toUpperCase();
+  var hash = 0;
+  for (var i = 0; i < (name || "").length; i++) { hash = name.charCodeAt(i) + ((hash << 5) - hash); hash |= 0; }
+  var hue = Math.abs(hash % 360);
+  var sat = 55 + Math.abs((hash >> 4) % 25);
+  var lit = 45 + Math.abs((hash >> 8) % 15);
+  var c = document.createElement("canvas"); c.width = size; c.height = size;
+  var ctx = c.getContext("2d");
+  var grad = ctx.createLinearGradient(0, 0, size, size);
+  grad.addColorStop(0, "hsl(" + hue + "," + sat + "%," + (lit + 10) + "%)");
+  grad.addColorStop(1, "hsl(" + ((hue + 40) % 360) + "," + (sat - 10) + "%," + (lit - 10) + "%)");
+  ctx.fillStyle = grad; ctx.beginPath(); ctx.arc(size/2, size/2, size/2, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = "rgba(255,255,255,0.85)"; ctx.font = "bold " + (size * 0.44) + "px system-ui,sans-serif";
+  ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(initials, size/2, size/2);
+  return c.toDataURL();
+}
+
+function refreshSettingsAvatar() {
+  var preview = document.getElementById("settingsAvatarPreview");
+  if (!preview || !currentUser) return;
+  preview.src = currentUser.picture || generateUserAvatar(currentUser.name || "Guest", 56);
+  renderNavUser();
+}
+function setAvatar(src) {
+  if (!currentUser) return;
+  currentUser.picture = src;
+  var user = JSON.parse(localStorage.getItem("user") || "{}");
+  user.picture = src;
+  saveUser(user);
+  refreshSettingsAvatar();
+}
+function regenerateAvatar() {
+  if (!currentUser) return;
+  setAvatar(null);
+}
+function resetAvatar() {
+  if (!currentUser) return;
+  var user = JSON.parse(localStorage.getItem("user") || "{}");
+  delete user.picture;
+  if (currentUser) delete currentUser.picture;
+  saveUser(user);
+  refreshSettingsAvatar();
+}
+async function aiGenerateAvatar() {
+  if (!currentUser) return;
+  var btn = event && event.target;
+  if (btn) { btn.disabled = true; btn.textContent = "✨ Generating..."; }
+  try {
+    var resp = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Authorization": "Bearer " + GROQ_API_KEY },
+      body: JSON.stringify({
+        model: GROQ_MODEL,
+        messages: [{ role: "system", content: "You are a creative avatar designer. Given a username, respond with ONLY a short visual style description (5-10 words) for a unique profile avatar. Examples: 'neon dragon scales on dark purple' or 'cherry blossoms on pastel sky' or 'cracked ice with aurora glow'. No markdown, no quotes, no commentary. Just the style." }, { role: "user", content: "Username: " + currentUser.name }],
+        temperature: 0.9,
+        max_tokens: 30
+      })
+    });
+    var style = "vibrant gradient";
+    if (resp.ok) {
+      var data = await resp.json();
+      style = (data.choices[0].message.content || "").trim().replace(/[""''.]/g, "") || "vibrant gradient";
+    }
+    var hash = 0;
+    for (var i = 0; i < style.length; i++) { hash = style.charCodeAt(i) + ((hash << 5) - hash); hash |= 0; }
+    var hue = Math.abs(hash % 360);
+    var size = 56, half = size / 2;
+    var c = document.createElement("canvas"); c.width = size; c.height = size;
+    var ctx = c.getContext("2d");
+    var grad = ctx.createRadialGradient(half * 0.3, half * 0.3, 2, half, half, half);
+    grad.addColorStop(0, "hsl(" + hue + ",80%," + (50 + Math.abs((hash >> 4) % 15)) + "%)");
+    grad.addColorStop(0.5, "hsl(" + ((hue + 60) % 360) + ",70%," + (40 + Math.abs((hash >> 6) % 15)) + "%)");
+    grad.addColorStop(1, "hsl(" + ((hue + 120) % 360) + ",60%," + (30 + Math.abs((hash >> 8) % 10)) + "%)");
+    ctx.fillStyle = grad; ctx.beginPath(); ctx.arc(half, half, half, 0, Math.PI * 2); ctx.fill();
+    for (var j = 0; j < 6; j++) {
+      var angle = (j / 6) * Math.PI * 2 + Math.abs((hash >> (j * 3)) % 360) * 0.01;
+      var dist = Math.abs((hash >> (j * 4)) % Math.floor(half * 0.6)) + 4;
+      var r = 2 + Math.abs((hash >> (j * 2)) % 5);
+      ctx.fillStyle = "hsla(" + ((hue + 30 * j) % 360) + ",90%,70%,0.25)";
+      ctx.beginPath(); ctx.arc(half + Math.cos(angle) * dist, half + Math.sin(angle) * dist, r, 0, Math.PI * 2); ctx.fill();
+    }
+    ctx.fillStyle = "rgba(255,255,255,0.9)"; ctx.font = "bold " + (size * 0.44) + "px system-ui,sans-serif";
+    ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText((currentUser.name || "?").charAt(0).toUpperCase(), half, half);
+    setAvatar(c.toDataURL());
+  } catch (e) {
+    regenerateAvatar();
+  }
+  if (btn) { btn.disabled = false; btn.textContent = "✨ AI Generate"; }
+}
+function uploadAvatar(event) {
+  var file = event.target.files && event.target.files[0];
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e) { setAvatar(e.target.result); };
+  reader.readAsDataURL(file);
+  event.target.value = "";
+}
+
 
 /* Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Nav Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
 function renderNavUser() {
   const c=document.getElementById("navUser"); if(!c)return;
   if(currentUser){
-    const img=currentUser.picture||"https://ui-avatars.com/api/?name="+encodeURIComponent(currentUser.name||"Guest")+"&background=ef4444&color=fff";
+    const img=currentUser.picture||generateUserAvatar(currentUser.name||"Guest",40);
     // Wings are ONLY shown when premiumStatus.premium is strictly true â€” never faked
     let isPremium = premiumStatus && premiumStatus.premium === true;
     // Synchronous fallback â€” handles edge cases where async premium check hasn't resolved

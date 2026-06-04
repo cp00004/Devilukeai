@@ -135,6 +135,25 @@
         </div>
       </div>
 
+      <div class="settings-group">
+        <label><span>Profile Picture</span></label>
+        <p class="setting-hint">Choose how you appear to others</p>
+        <div id="avatarPreviewArea" style="display:flex;align-items:center;gap:16px;margin-top:10px">
+          <img id="settingsAvatarPreview" src="" alt="" style="width:56px;height:56px;border-radius:50%;object-fit:cover;border:2px solid var(--border);background:var(--bg-card)">
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <div style="display:flex;gap:6px;flex-wrap:wrap">
+              <button class="btn btn-secondary" style="font-size:0.78rem;padding:5px 10px" onclick="regenerateAvatar()">🎨 Generate</button>
+              <button class="btn btn-secondary" style="font-size:0.78rem;padding:5px 10px" onclick="aiGenerateAvatar()">✨ AI Generate</button>
+              <label class="btn btn-secondary" style="font-size:0.78rem;padding:5px 10px;cursor:pointer">
+                📁 Upload
+                <input type="file" accept="image/*" style="display:none" onchange="uploadAvatar(event)">
+              </label>
+            </div>
+            <button class="btn btn-secondary" style="font-size:0.75rem;padding:3px 10px;align-self:flex-start" onclick="resetAvatar()">Reset to default</button>
+          </div>
+        </div>
+      </div>
+
       <div class="settings-group" id="adminDataManagement" style="display:none;">
         <label><span>Data Management</span></label>
         <p class="setting-hint">Backup or restore bots, chats, and settings.</p>

@@ -86,12 +86,6 @@
       <div class="creator-profile-info">
         <h1 class="creator-profile-name" id="creatorName">...</h1>
         <p class="creator-profile-bio" id="creatorBio">Character creator</p>
-          <div class="creator-profile-stats">
-            <div class="creator-profile-stat">
-              <div class="creator-profile-stat-value" id="creatorBotCount">0</div>
-              <div class="creator-profile-stat-label">Bots</div>
-            </div>
-          </div>
         </div>
         <div class="creator-profile-actions">
           <button class="btn btn-secondary" id="followBtn" style="font-size:0.85rem" onclick="toggleFollow()">Follow</button>
@@ -174,8 +168,7 @@
         document.getElementById("creatorAvatarFallback").textContent = creator.charAt(0).toUpperCase();
       }
 
-      // Stats
-      document.getElementById("creatorBotCount").textContent = chars.length;
+      // Stats and follow button
       document.getElementById("creatorBotsTitle").textContent = "Characters (" + chars.length + ")";
 
       // Follow button
