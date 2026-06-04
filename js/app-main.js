@@ -1600,7 +1600,8 @@ function initCreateTagSearch() {
   let selected=[];
 
   function renderChips() {
-    container.innerHTML=selected.map(t=>`<span class="tag-chip" data-tag="${t}">${t.replace(/[Ã¢Å“â€¢×✕]/g, "")}<button class="tag-chip-remove" onclick="removeTag('${t}')">&times;</button></span>`).join("");
+    selected = selected.map(function(t) { return t.replace(/[Ã¢Å“â€¢×✕]/g, "").trim(); }).filter(Boolean);
+    container.innerHTML=selected.map(t=>`<span class="tag-chip" data-tag="${t}">${t}<button class="tag-chip-remove" onclick="removeTag('${t}')">&times;</button></span>`).join("");
   }
 
   window.removeTag=function(tag) {
