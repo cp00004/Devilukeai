@@ -111,7 +111,7 @@ const presetColors = ["#ef4444", "#ff6b6b", "#ff4500", "#ff0080", "#ff7f50", "#f
 /* --- JSONBin.io Cloud Sync --- */
 const JSONBIN_BIN_ID = localStorage.getItem("deviluke_jsonbin_id") || "6a19cff0ddf5aa59f7757613";
 const JSONBIN_API_KEY = localStorage.getItem("deviluke_jsonbin_key") || "$2a$10$iZS8u8vmb5y/u/BFy/rul.3HAuiXy6bS8RFEJCQqx33eARkL8cXCq";
-const JSONBIN_PROXY_URL = localStorage.getItem("deviluke_jsonbin_proxy") || "";
+const JSONBIN_PROXY_URL = localStorage.getItem("deviluke_jsonbin_proxy") || (location.hostname.endsWith(".github.io") ? "https://corsproxy.io/?" : "");
 let cloudSyncInFlight = null;
 let cloudSyncDisabledReason = "";
 
