@@ -111,7 +111,7 @@ const presetColors = ["#ef4444", "#ff6b6b", "#ff4500", "#ff0080", "#ff7f50", "#f
 /* --- JSONBin.io Cloud Sync --- */
 const JSONBIN_BIN_ID = localStorage.getItem("deviluke_jsonbin_id") || "6a19cff0ddf5aa59f7757613";
 const JSONBIN_API_KEY = localStorage.getItem("deviluke_jsonbin_key") || "$2a$10$iZS8u8vmb5y/u/BFy/rul.3HAuiXy6bS8RFEJCQqx33eARkL8cXCq";
-const JSONBIN_PROXY_URL = localStorage.getItem("deviluke_jsonbin_proxy") || (location.hostname.endsWith(".github.io") ? "https://corsproxy.io/?" : "");
+const JSONBIN_PROXY_URL = localStorage.getItem("deviluke_jsonbin_proxy") || (location.hostname.endsWith(".github.io") ? "https://api.allorigins.win/raw?url=" : "");
 let cloudSyncInFlight = null;
 let cloudSyncDisabledReason = "";
 
@@ -133,13 +133,9 @@ function isCloudSyncReady() {
 
 async function _jsonbinFetch(url, options) {
   if (JSONBIN_PROXY_URL) {
-    return await fetch(JSONBIN_PROXY_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ url, options })
-    });
+    return await fetch(JSONBIN_PROXY_URL + encodeURIComponent(url), options || {});
   }
-  return await fetch(url, options);
+  return await fetch(url, options || {});
 }
 
 /* --- Shared total-message count for all bots (default + custom) --- */
