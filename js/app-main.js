@@ -996,12 +996,7 @@ function renderCharacterCard(char) {
 function renderCharacters() {
   const grid=document.getElementById("characterGrid");
   if(!grid)return;
-  let chars;
-  if (activeCreatorFilter) {
-    chars = characters.filter(function(c) { return c.creator === activeCreatorFilter; });
-  } else {
-    chars = getCategoryChars(activeCategory);
-  }
+  let chars = getCategoryChars(activeCategory);
   chars = chars
     .filter(c=>settings.nsfwEnabled||!c.tags.includes("nsfw"))
     .filter(c=>!activeTagFilters.length||activeTagFilters.every(t=>c.tags.includes(t)));
@@ -1033,31 +1028,8 @@ function renderCharacters() {
   grid.innerHTML=chars.length?chars.map(renderCharacterCard).join(""):`<div class="empty-state"><div class="empty-icon">🔮</div><h3>No characters found</h3><p>Try a different category or tag</p></div>`;
 }
 
-let activeCreatorFilter = null;
-
 function filterByCreator(creator) {
-  if (!document.getElementById("characterGrid")) {
-    location.href = "index.html?creator=" + encodeURIComponent(creator);
-    return;
-  }
-  activeCreatorFilter = creator;
-  var cats = document.querySelectorAll(".category-btn");
-  cats.forEach(function(c) { c.classList.remove("active"); });
-  renderCharacters();
-  var banner = document.getElementById("creatorBanner");
-  if (banner) {
-    banner.style.display = "block";
-    banner.innerHTML = 'Characters by ' + creator + ' <button class="btn btn-secondary btn-sm" onclick="clearCreatorFilter()" style="margin-left:12px">Back to All</button>';
-  }
-}
-
-function clearCreatorFilter() {
-  activeCreatorFilter = null;
-  var banner = document.getElementById("creatorBanner");
-  if (banner) banner.style.display = "none";
-  var cats = document.querySelectorAll(".category-btn");
-  cats.forEach(function(c) { if (c.dataset.cat === activeCategory) c.classList.add("active"); });
-  renderCharacters();
+  location.href = "creator.html?creator=" + encodeURIComponent(creator);
 }
 
 /* ─────────────── Character Detail ─────────────── */
