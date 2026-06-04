@@ -983,7 +983,7 @@ function renderCharacterCard(char) {
     <div class="card-top">
       <div class="card-info">
         <h3 style="color:var(--accent)">${char.name}${char.scenarios&&char.scenarios.length?` <span style="font-size:0.65rem;background:var(--accent);color:#fff;padding:2px 6px;border-radius:8px;vertical-align:middle">${char.scenarios.length} scenarios</span>`:''}</h3>
-        <span class="creator">by ${char.creator}</span>
+        <span class="creator">by <a href="javascript:void(0)" onclick="event.stopPropagation();filterByCreator('${char.creator.replace(/'/g, "\\'")}')" class="creator-link">${char.creator}</a></span>
       </div>
       ${deleteBtn}
     </div>
@@ -996,7 +996,13 @@ function renderCharacterCard(char) {
 function renderCharacters() {
   const grid=document.getElementById("characterGrid");
   if(!grid)return;
-  let chars=getCategoryChars(activeCategory)
+  let chars;
+  if (activeCreatorFilter) {
+    chars = characters.filter(function(c) { return c.creator === activeCreatorFilter; });
+  } else {
+    chars = getCategoryChars(activeCategory);
+  }
+  chars = chars
     .filter(c=>settings.nsfwEnabled||!c.tags.includes("nsfw"))
     .filter(c=>!activeTagFilters.length||activeTagFilters.every(t=>c.tags.includes(t)));
 
@@ -1024,10 +1030,37 @@ function renderCharacters() {
     return a.id > b.id ? 1 : -1;
   });
 
-  grid.innerHTML=chars.length?chars.map(renderCharacterCard).join(""):`<div class="empty-state"><div class="empty-icon">Ã°Å¸â€Â®</div><h3>No characters found</h3><p>Try a different category or tag</p></div>`;
+  grid.innerHTML=chars.length?chars.map(renderCharacterCard).join(""):`<div class="empty-state"><div class="empty-icon">🔮</div><h3>No characters found</h3><p>Try a different category or tag</p></div>`;
 }
 
-/* Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Character Detail Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
+let activeCreatorFilter = null;
+
+function filterByCreator(creator) {
+  if (!document.getElementById("characterGrid")) {
+    location.href = "index.html?creator=" + encodeURIComponent(creator);
+    return;
+  }
+  activeCreatorFilter = creator;
+  var cats = document.querySelectorAll(".category-btn");
+  cats.forEach(function(c) { c.classList.remove("active"); });
+  renderCharacters();
+  var banner = document.getElementById("creatorBanner");
+  if (banner) {
+    banner.style.display = "block";
+    banner.innerHTML = 'Characters by ' + creator + ' <button class="btn btn-secondary btn-sm" onclick="clearCreatorFilter()" style="margin-left:12px">Back to All</button>';
+  }
+}
+
+function clearCreatorFilter() {
+  activeCreatorFilter = null;
+  var banner = document.getElementById("creatorBanner");
+  if (banner) banner.style.display = "none";
+  var cats = document.querySelectorAll(".category-btn");
+  cats.forEach(function(c) { if (c.dataset.cat === activeCategory) c.classList.add("active"); });
+  renderCharacters();
+}
+
+/* ─────────────── Character Detail ─────────────── */
 
 
 /* Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Nav Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
@@ -2402,6 +2435,8 @@ document.addEventListener("DOMContentLoaded", () => {
   if (params.get("char")) startChat(params.get("char"));
   const tagParam = params.get("tag");
   if (tagParam) { activeTagFilters = [tagParam]; const si = document.getElementById("searchInput"); if (si) si.value = ""; initCharsTagSidebar(); renderCharacters(); }
+  const creatorParam = params.get("creator");
+  if (creatorParam) { filterByCreator(creatorParam); }
   const qParam = params.get("q");
   if (qParam) { const si = document.getElementById("searchInput"); if (si) { si.value = qParam; si.dispatchEvent(new Event("input")); } }
 

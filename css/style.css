@@ -363,6 +363,14 @@ a { color: var(--accent); text-decoration: none; }
   font-size: 0.8rem;
   color: var(--text-muted);
 }
+.character-card .card-info .creator .creator-link {
+  color: var(--accent);
+  text-decoration: none;
+  cursor: pointer;
+}
+.character-card .card-info .creator .creator-link:hover {
+  text-decoration: underline;
+}
 .character-card .description {
   font-size: 0.85rem;
   color: var(--text-primary);

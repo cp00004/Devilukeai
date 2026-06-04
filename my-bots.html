@@ -175,9 +175,14 @@
 
     function renderMyBots() {
       const allBots = getCustomCharacters();
-      // admin sees all, others see only their own bots
       const isOwner = typeof isAdminUser === "function" && isAdminUser();
-      const bots = isOwner ? allBots : allBots.filter(b => b.creator === (currentUser && currentUser.name));
+      let bots = isOwner ? allBots : allBots.filter(b => b.creator === (currentUser && currentUser.name));
+      if (isOwner && typeof defaultCharacters !== "undefined") {
+        var devilukeDefaults = defaultCharacters.filter(function(c) { return c.creator === "Deviluke"; });
+        devilukeDefaults.forEach(function(d) {
+          if (!bots.find(function(b) { return String(b.id) === String(d.id); })) bots.push(d);
+        });
+      }
       const grid = document.getElementById("myBotsGrid");
       const empty = document.getElementById("myBotsEmpty");
 
