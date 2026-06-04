@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -7,8 +7,8 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Character Creator — Deviluke AI</title>
-  <link rel="stylesheet" href="css/style.css?v=51">
+  <title>Character Creator â€” Deviluke AI</title>
+  <link rel="stylesheet" href="css/style.css?v=52">
   <link rel="icon" href="d.ai.png?v=51">
   <link rel="manifest" href="manifest.json">
 </head>
@@ -56,7 +56,7 @@
       <span id="navUser"></span>
       <span id="syncStatus"></span>
       <div class="lang-dropdown">
-        <button class="lang-btn" onclick="toggleLangDropdown()" title="Change Language">🌐</button>
+        <button class="lang-btn" onclick="toggleLangDropdown()" title="Change Language">ðŸŒ</button>
         <div class="lang-dropdown-menu" id="langDropdown">
           <input type="text" id="langSearch" placeholder="Search language..." onkeyup="filterLangs()">
           <div class="lang-list" id="langList">
@@ -75,7 +75,7 @@
           </div>
         </div>
       </div>
-      <button class="settings-btn" onclick="openSettings()" title="Settings">⚙️</button>
+      <button class="settings-btn" onclick="openSettings()" title="Settings">âš™ï¸</button>
     </div>
   </nav>
 
@@ -99,7 +99,7 @@
     </div>
 
     <div class="my-bots-empty" id="creatorEmpty" style="display:none">
-      <div class="my-bots-empty-icon">🔮</div>
+      <div class="my-bots-empty-icon">ðŸ”®</div>
       <h2>No characters found</h2>
       <p>No characters by this creator yet.</p>
       <a href="index.html" class="btn btn-primary" style="margin-top:20px">Browse All Characters</a>
@@ -125,7 +125,7 @@
         return;
       }
 
-      document.title = creator + " — Creator Profile | Deviluke AI";
+      document.title = creator + " â€” Creator Profile | Deviluke AI";
 
       var all = [];
       if (typeof defaultCharacters !== "undefined") {

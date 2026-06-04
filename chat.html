@@ -1,13 +1,13 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Chat — Deviluke AI</title>
+  <title>Chat â€” Deviluke AI</title>
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <link rel="stylesheet" href="css/style.css?v=51">
+  <link rel="stylesheet" href="css/style.css?v=52">
   <link rel="icon" href="d.ai.png?v=51">
   <link rel="manifest" href="manifest.json">
 </head>
@@ -55,7 +55,7 @@
       <span id="navUser"></span>
       <span id="syncStatus"></span>
       <div class="lang-dropdown">
-        <button class="lang-btn" onclick="toggleLangDropdown()" title="Change Language">🌐</button>
+        <button class="lang-btn" onclick="toggleLangDropdown()" title="Change Language">ðŸŒ</button>
         <div class="lang-dropdown-menu" id="langDropdown">
           <input type="text" id="langSearch" placeholder="Search language..." onkeyup="filterLangs()">
           <div class="lang-list" id="langList">
@@ -74,14 +74,14 @@
           </div>
         </div>
       </div>
-      <button class="settings-btn" onclick="openSettings()" title="Settings">⚙️</button>
+      <button class="settings-btn" onclick="openSettings()" title="Settings">âš™ï¸</button>
     </div>
   </nav>
 
   <div class="chat-page">
     <aside class="chat-sidebar">
       <div class="chat-sidebar-header">
-        <h3>📜 History</h3>
+        <h3>ðŸ“œ History</h3>
         <button class="new-chat-btn" onclick="window.location.href='index.html'">+</button>
       </div>
       <div class="chat-history" id="chatHistoryList"></div>
@@ -90,7 +90,7 @@
     <main class="chat-main">
       <div class="chat-char-info" id="chatCharInfo"></div>
       <div class="chat-header">
-        <div class="ch-avatar" id="chatAvatar" style="background: #8b5cf6">🌙</div>
+        <div class="ch-avatar" id="chatAvatar" style="background: #8b5cf6">ðŸŒ™</div>
         <div class="ch-info">
           <h4 id="chatName">Luna Verath</h4>
           <span>Online &bull; Reply time: instantly</span>
@@ -99,7 +99,7 @@
 
       <div class="chat-messages" id="chatMessages">
         <div class="message bot">
-          <div class="msg-avatar" style="background: #8b5cf6">🌙</div>
+          <div class="msg-avatar" style="background: #8b5cf6">ðŸŒ™</div>
           <div>
             <div class="msg-bubble">*Luna's eyes gleam with otherworldly light as she traces a sigil in the air* Well now... I've been expecting you. The shadows whispered your name long before you arrived.</div>
             <div class="msg-time">Just now</div>
@@ -116,14 +116,39 @@
     </main>
 
     <div class="chat-tab-bar">
-      <button class="chat-tab-btn chat-tab-text-btn" id="personaSelectorBtn" onclick="openPersonaPicker()" title="Choose persona">Persona</button>
-      <button class="chat-tab-btn chat-tab-text-btn" onclick="restartChat()" title="Restart chat">Restart</button>
+      <button class="chat-tab-btn" id="chatMenuBtn" onclick="toggleChatMenu()" title="Menu">&#9776;</button>
     </div>
   </div>
 
+  <div class="chat-menu-drawer" id="chatMenuDrawer">
+    <div class="chat-menu-header">
+      <h3>Menu</h3>
+      <button class="chat-menu-close" onclick="closeChatMenu()">&times;</button>
+    </div>
+    <div class="chat-menu-body">
+      <button class="chat-menu-item" onclick="closeChatMenu(); openPersonaPicker()">
+        <span class="chat-menu-icon">&#128100;</span>
+        <span>Persona</span>
+      </button>
+      <button class="chat-menu-item" onclick="closeChatMenu(); restartChat()">
+        <span class="chat-menu-icon">&#x21bb;</span>
+        <span>Restart Chat</span>
+      </button>
+      <div class="chat-menu-divider"></div>
+      <div class="chat-menu-section">
+        <h4>Comment on this Bot</h4>
+        <p class="chat-menu-hint">Send feedback to the bot creator</p>
+        <textarea class="chat-menu-textarea" id="commentInput" placeholder="Write your comment..." rows="3"></textarea>
+        <button class="btn btn-primary" onclick="sendBotComment()" id="commentSendBtn">Send</button>
+        <div id="commentStatus" class="chat-menu-status"></div>
+      </div>
+    </div>
+  </div>
+  <div class="chat-menu-overlay" id="chatMenuOverlay" onclick="closeChatMenu()"></div>
+
   <div class="settings-modal" id="settingsModal">
     <div class="settings-panel">
-      <h2>⚙️ Settings</h2>
+      <h2>âš™ï¸ Settings</h2>
       <p class="settings-sub">Customize your experience</p>
       <div class="settings-group">
         <label>
@@ -156,6 +181,7 @@
     </div>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
   <script src="js/app-main.js?v=56"></script>
 
 </body>

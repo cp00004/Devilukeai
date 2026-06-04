@@ -1558,6 +1558,61 @@ a { color: var(--accent); text-decoration: none; }
 }
 .persona-dont-ask input[type=checkbox] { accent-color: var(--accent); }
 
+/* ─── Chat Menu Drawer ─── */
+.chat-menu-drawer {
+  position: fixed; top: 0; right: -340px; width: 320px; height: 100%;
+  background: var(--bg-secondary); border-left: 1px solid var(--border);
+  z-index: 1002; transition: right 0.3s ease;
+  display: flex; flex-direction: column; box-shadow: -4px 0 20px rgba(0,0,0,0.3);
+}
+.chat-menu-drawer.open { right: 0; }
+.chat-menu-overlay {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0,0,0,0.5); z-index: 1001;
+  display: none;
+}
+.chat-menu-overlay.open { display: block; }
+.chat-menu-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 20px; border-bottom: 1px solid var(--border);
+}
+.chat-menu-header h3 { font-size: 1.1rem; font-weight: 600; }
+.chat-menu-close {
+  background: none; border: none; color: var(--text-secondary);
+  font-size: 1.5rem; cursor: pointer; padding: 4px 8px; line-height: 1;
+}
+.chat-menu-close:hover { color: var(--text-primary); }
+.chat-menu-body {
+  flex: 1; overflow-y: auto; padding: 12px 0;
+  display: flex; flex-direction: column; gap: 4px;
+}
+.chat-menu-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 20px; background: none; border: none;
+  color: var(--text-primary); font-size: 0.9rem; cursor: pointer;
+  transition: var(--transition); width: 100%; text-align: left;
+  font-family: inherit;
+}
+.chat-menu-item:hover { background: var(--bg-hover); }
+.chat-menu-icon { font-size: 1.2rem; width: 24px; text-align: center; }
+.chat-menu-divider {
+  height: 1px; background: var(--border); margin: 8px 20px;
+}
+.chat-menu-section { padding: 12px 20px; }
+.chat-menu-section h4 { font-size: 0.9rem; font-weight: 600; margin-bottom: 4px; }
+.chat-menu-hint { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 10px; }
+.chat-menu-textarea {
+  width: 100%; padding: 10px 12px; border-radius: 8px;
+  background: var(--bg-primary); border: 1px solid var(--border);
+  color: var(--text-primary); font-family: inherit; font-size: 0.85rem;
+  resize: vertical; min-height: 60px; box-sizing: border-box;
+  outline: none;
+}
+.chat-menu-textarea:focus { border-color: var(--accent); }
+.chat-menu-status {
+  font-size: 0.8rem; margin-top: 6px; min-height: 1.2em;
+}
+
 /* ─── Personas Page ─── */
 .personas-page {
   max-width: 700px; margin: 0 auto; padding: 40px 20px;
@@ -2051,7 +2106,7 @@ a { color: var(--accent); text-decoration: none; }
   }
   .chat-tab-btn,
   .chat-tab-text-btn {
-    width: min(42vw, 160px); min-height: 42px; font-size: 0.82rem;
+    width: 44px; min-height: 42px; font-size: 1.3rem;
   }
 
   .form-row { flex-direction: column; }

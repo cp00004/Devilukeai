@@ -1,12 +1,12 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script>if (new URLSearchParams(location.search).has("update")) { location.replace("index.html"); }</script>
-  <title>Download — Deviluke AI</title>
+  <title>Download â€” Deviluke AI</title>
   <meta name="description" content="Download the Deviluke AI app for Android. Bring all your characters, personas, and chats to your mobile device.">
-  <link rel="stylesheet" href="css/style.css?v=51">
+  <link rel="stylesheet" href="css/style.css?v=52">
   <link rel="icon" href="d.ai.png?v=51">
   <link rel="manifest" href="manifest.json">
   <style>
@@ -358,7 +358,7 @@
       <span id="navUser"></span>
       <span id="syncStatus"></span>
       <div class="lang-dropdown">
-        <button class="lang-btn" onclick="toggleLangDropdown()" title="Change Language">🌐</button>
+        <button class="lang-btn" onclick="toggleLangDropdown()" title="Change Language">ðŸŒ</button>
         <div class="lang-dropdown-menu" id="langDropdown">
           <input type="text" id="langSearch" placeholder="Search language..." onkeyup="filterLangs()">
           <div class="lang-list" id="langList">
@@ -377,7 +377,7 @@
           </div>
         </div>
       </div>
-      <button class="settings-btn" onclick="openSettings()" title="Settings">⚙️</button>
+      <button class="settings-btn" onclick="openSettings()" title="Settings">âš™ï¸</button>
     </div>
   </nav>
 
@@ -397,27 +397,27 @@
       <!-- Features -->
       <div class="download-features">
         <div class="download-feature">
-          <span class="download-feature-icon">🤖</span>
+          <span class="download-feature-icon">ðŸ¤–</span>
           <span>All your characters & bots</span>
         </div>
         <div class="download-feature">
-          <span class="download-feature-icon">🌙</span>
+          <span class="download-feature-icon">ðŸŒ™</span>
           <span>Native dark mode</span>
         </div>
         <div class="download-feature">
-          <span class="download-feature-icon">🔔</span>
+          <span class="download-feature-icon">ðŸ””</span>
           <span>Push notifications</span>
         </div>
         <div class="download-feature">
-          <span class="download-feature-icon">⚡</span>
+          <span class="download-feature-icon">âš¡</span>
           <span>Faster than the browser</span>
         </div>
         <div class="download-feature">
-          <span class="download-feature-icon">🔒</span>
+          <span class="download-feature-icon">ðŸ”’</span>
           <span>Secure & private</span>
         </div>
         <div class="download-feature">
-          <span class="download-feature-icon">🌐</span>
+          <span class="download-feature-icon">ðŸŒ</span>
           <span>Multi-language support</span>
         </div>
       </div>
@@ -425,14 +425,14 @@
       <!-- Download Stats -->
       <div class="download-stats">
         <div class="stat-item">
-          <span class="stat-num" id="totalDownloads">—</span>
+          <span class="stat-num" id="totalDownloads">â€”</span>
           <span class="stat-label">Total Downloads</span>
         </div>
       </div>
 
       <!-- How to get the APK -->
       <div class="apk-steps-box">
-        <div class="apk-steps-title">📲 How to get the Android App</div>
+        <div class="apk-steps-title">ðŸ“² How to get the Android App</div>
         <ol class="apk-steps-list">
           <li>
             <span class="apk-step-num">1</span>
@@ -475,7 +475,7 @@
   <!-- Settings Modal -->
   <div class="settings-modal" id="settingsModal">
     <div class="settings-panel">
-      <h2>⚙️ Settings</h2>
+      <h2>âš™ï¸ Settings</h2>
       <p class="settings-sub">Customize your experience</p>
       <div class="settings-group">
         <label>
@@ -510,7 +510,7 @@
 
   <script src="js/app-main.js?v=56"></script>
   <script>
-    // Download counter — uses CountAPI for a global count
+    // Download counter â€” uses CountAPI for a global count
     (function() {
       const API_NS = 'devilukeai';
       const API_KEY = 'downloads';
@@ -538,7 +538,7 @@
         if (!el) return;
         fetch(COUNT_URL).then(function(r) { return r.json(); }).then(function(data) {
           if (data && typeof data.value === 'number') animateNumber(el, data.value);
-        }).catch(function() { el.textContent = '—'; });
+        }).catch(function() { el.textContent = 'â€”'; });
       }
 
       function recordDownload() {

@@ -1508,6 +1508,66 @@ function restartChat() {
   saveCurrentChat();renderMessages();renderChatHistory();
 }
 
+/* ─── Chat Menu Drawer ─── */
+function toggleChatMenu() {
+  document.getElementById("chatMenuDrawer").classList.toggle("open");
+  document.getElementById("chatMenuOverlay").classList.toggle("open");
+}
+function closeChatMenu() {
+  document.getElementById("chatMenuDrawer").classList.remove("open");
+  document.getElementById("chatMenuOverlay").classList.remove("open");
+}
+
+/* ─── Bot Comment / EmailJS ─── */
+function sendBotComment() {
+  var input = document.getElementById("commentInput");
+  var status = document.getElementById("commentStatus");
+  var btn = document.getElementById("commentSendBtn");
+  var text = (input && input.value.trim()) || "";
+  if (!text) { if (status) status.textContent = "Please write a comment first."; return; }
+  if (btn) btn.disabled = true;
+  if (status) status.textContent = "Sending...";
+  var ch = getCharacter(currentCharId);
+  var botName = ch ? ch.name : "Unknown Bot";
+  var commenter = currentUser ? currentUser.name : "Anonymous";
+  var emailjsConfig = (function() {
+    try { return JSON.parse(localStorage.getItem("deviluke_emailjs_config")); } catch { return null; }
+  })();
+  if (emailjsConfig && emailjsConfig.publicKey && emailjsConfig.serviceId && emailjsConfig.templateId && typeof emailjs !== "undefined") {
+    emailjs.init(emailjsConfig.publicKey);
+    emailjs.send(emailjsConfig.serviceId, emailjsConfig.templateId, {
+      to_email: "ciphercodezeo0@gmail.com",
+      from_name: commenter,
+      bot_name: botName,
+      message: text,
+      reply_to: currentUser && currentUser.email ? currentUser.email : ""
+    }).then(function() {
+      if (status) { status.textContent = "Comment sent! Thank you."; status.style.color = "var(--accent)"; }
+      if (input) input.value = "";
+    }).catch(function(err) {
+      if (status) { status.textContent = "Could not send email. Saved locally."; status.style.color = "var(--text-muted)"; }
+      saveLocalComment(botName, commenter, text);
+    }).finally(function() {
+      if (btn) btn.disabled = false;
+    });
+  } else {
+    saveLocalComment(botName, commenter, text);
+    if (status) { status.textContent = "Comment saved. The owner will see it."; status.style.color = "var(--accent)"; }
+    if (input) input.value = "";
+    if (btn) btn.disabled = false;
+    if (!emailjsConfig && typeof emailjs === "undefined") {
+      if (status) status.textContent += " Tip: Configure EmailJS via deviluke_emailjs_config in localStorage for email delivery.";
+    }
+  }
+}
+function saveLocalComment(botName, commenter, text) {
+  try {
+    var comments = JSON.parse(localStorage.getItem("deviluke_bot_comments") || "[]");
+    comments.push({ botName: botName, commenter: commenter, text: text, ts: Date.now() });
+    localStorage.setItem("deviluke_bot_comments", JSON.stringify(comments));
+  } catch(e) { console.warn("Failed to save comment locally:", e); }
+}
+
 function sendMessage() {
   const i=document.getElementById("chatInput"); if(!i||!i.value.trim())return;
   incrementTodayMessages();
