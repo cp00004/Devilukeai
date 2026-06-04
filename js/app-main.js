@@ -1156,7 +1156,7 @@ async function aiGenerateAvatar() {
   if (btn) { btn.disabled = true; btn.textContent = "✨ Generating..."; }
   try {
     if (typeof puter !== "undefined" && puter.ai) {
-      var imgEl = await puter.ai.txt2img("A cool profile avatar for " + (currentUser.name || "user") + ", circular portrait, vibrant colors, anime style, high quality", { model: "gpt-image-2" });
+      var imgEl = await puter.ai.txt2img("profile avatar of " + (currentUser.name || "user") + ", anime character portrait, vibrant colors, circular");
       var size = 112;
       var c = document.createElement("canvas"); c.width = size; c.height = size;
       var ctx = c.getContext("2d");
@@ -1165,44 +1165,100 @@ async function aiGenerateAvatar() {
       ctx.clip();
       ctx.drawImage(imgEl, 0, 0, size, size);
       setAvatar(c.toDataURL());
-    } else {
-      var resp = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "Authorization": "Bearer " + GROQ_API_KEY },
-        body: JSON.stringify({
-          model: GROQ_MODEL,
-          messages: [{ role: "system", content: "You are a creative avatar designer. Given a username, respond with ONLY a short visual style description (5-10 words) for a unique profile avatar. Examples: 'neon dragon scales on dark purple' or 'cherry blossoms on pastel sky' or 'cracked ice with aurora glow'. No markdown, no quotes, no commentary. Just the style." }, { role: "user", content: "Username: " + currentUser.name }],
-          temperature: 0.9,
-          max_tokens: 30
-        })
-      });
-      var style = "vibrant gradient";
-      if (resp.ok) {
-        var data = await resp.json();
-        style = (data.choices[0].message.content || "").trim().replace(/[""''.]/g, "") || "vibrant gradient";
-      }
-      var hash = 0;
-      for (var i = 0; i < style.length; i++) { hash = style.charCodeAt(i) + ((hash << 5) - hash); hash |= 0; }
-      var hue = Math.abs(hash % 360);
-      var size = 56, half = size / 2;
-      var c = document.createElement("canvas"); c.width = size; c.height = size;
-      var ctx = c.getContext("2d");
-      var grad = ctx.createRadialGradient(half * 0.3, half * 0.3, 2, half, half, half);
-      grad.addColorStop(0, "hsl(" + hue + ",80%," + (50 + Math.abs((hash >> 4) % 15)) + "%)");
-      grad.addColorStop(0.5, "hsl(" + ((hue + 60) % 360) + ",70%," + (40 + Math.abs((hash >> 6) % 15)) + "%)");
-      grad.addColorStop(1, "hsl(" + ((hue + 120) % 360) + ",60%," + (30 + Math.abs((hash >> 8) % 10)) + "%)");
-      ctx.fillStyle = grad; ctx.beginPath(); ctx.arc(half, half, half, 0, Math.PI * 2); ctx.fill();
-      for (var j = 0; j < 6; j++) {
-        var angle = (j / 6) * Math.PI * 2 + Math.abs((hash >> (j * 3)) % 360) * 0.01;
-        var dist = Math.abs((hash >> (j * 4)) % Math.floor(half * 0.6)) + 4;
-        var r = 2 + Math.abs((hash >> (j * 2)) % 5);
-        ctx.fillStyle = "hsla(" + ((hue + 30 * j) % 360) + ",90%,70%,0.25)";
-        ctx.beginPath(); ctx.arc(half + Math.cos(angle) * dist, half + Math.sin(angle) * dist, r, 0, Math.PI * 2); ctx.fill();
-      }
-      ctx.fillStyle = "rgba(255,255,255,0.9)"; ctx.font = "bold " + (size * 0.44) + "px system-ui,sans-serif";
-      ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText((currentUser.name || "?").charAt(0).toUpperCase(), half, half);
-      setAvatar(c.toDataURL());
+      if (btn) { btn.disabled = false; btn.textContent = "✨ AI Generate"; }
+      return;
     }
+  } catch (e) {}
+  try {
+    var resp = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Authorization": "Bearer " + GROQ_API_KEY },
+      body: JSON.stringify({
+        model: GROQ_MODEL,
+        messages: [{ role: "system", content: "You are a creative avatar designer. Given a username, respond with ONLY a short visual style (5-10 words) describing an anime character portrait. Examples: 'long silver hair purple eyes cold gaze' or 'spiky red hair green eyes fierce smile' or 'twin tails pink hair blue eyes cheerful'. No markdown, no quotes, no commentary." }, { role: "user", content: "Username: " + currentUser.name }],
+        temperature: 0.9,
+        max_tokens: 30
+      })
+    });
+    var look = "messy black hair sharp red eyes";
+    if (resp.ok) {
+      var data = await resp.json();
+      look = (data.choices[0].message.content || "").trim().replace(/[""''.]/g, "") || look;
+    }
+    var hash = 0;
+    for (var i = 0; i < look.length; i++) { hash = look.charCodeAt(i) + ((hash << 5) - hash); hash |= 0; }
+    var hue = hexToHue(settings.accentColor || "#ef4444");
+    var accent = settings.accentColor || "#ef4444";
+    var size = 112, half = size / 2;
+    var c = document.createElement("canvas"); c.width = size; c.height = size;
+    var ctx = c.getContext("2d");
+    var seed = Math.abs(hash);
+    ctx.beginPath(); ctx.arc(half, half, half, 0, Math.PI * 2); ctx.closePath(); ctx.clip();
+    var bgGrad = ctx.createRadialGradient(half * 0.3, half * 0.3, 2, half, half, half);
+    bgGrad.addColorStop(0, "hsl(" + hue + ",85%," + (65 + (seed % 10)) + "%)");
+    bgGrad.addColorStop(0.5, "hsl(" + ((hue + 40) % 360) + ",75%," + (50 + ((seed >> 4) % 10)) + "%)");
+    bgGrad.addColorStop(1, "hsl(" + ((hue + 80) % 360) + ",65%," + (35 + ((seed >> 8) % 10)) + "%)");
+    ctx.fillStyle = bgGrad; ctx.fillRect(0, 0, size, size);
+    var skinHue = (hue + 180) % 360;
+    var skin = "hsl(" + skinHue + ",15%," + (80 + ((seed >> 2) % 8)) + "%)";
+    ctx.fillStyle = skin; ctx.beginPath();
+    ctx.ellipse(half, half + 6, half * 0.55, half * 0.62, 0, 0, Math.PI * 2); ctx.fill();
+    var hairHue = (hue + ((seed >> 3) % 3) * 60) % 360;
+    var hairSat = 60 + (seed % 25);
+    var hairLit = 30 + (seed % 20);
+    var hairStyle = (seed >> 5) % 5;
+    ctx.fillStyle = "hsl(" + hairHue + "," + hairSat + "%," + hairLit + "%)";
+    if (hairStyle === 0) {
+      ctx.beginPath(); ctx.ellipse(half, half - 16, half * 0.6, half * 0.45, 0, Math.PI, 0); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(half - 10, half - 4, half * 0.25, half * 0.35, -0.2, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(half + 10, half - 4, half * 0.25, half * 0.35, 0.2, 0, Math.PI * 2); ctx.fill();
+    } else if (hairStyle === 1) {
+      ctx.beginPath(); ctx.arc(half, half - 16, half * 0.55, Math.PI, 0); ctx.fill();
+      for (var k = 0; k < 7; k++) {
+        var a = Math.PI + (k / 6) * Math.PI;
+        ctx.fillRect(half + Math.cos(a) * half * 0.5 - 2, half + Math.sin(a) * half * 0.5, 4, half * 0.3);
+      }
+    } else if (hairStyle === 2) {
+      ctx.beginPath(); ctx.arc(half, half - 14, half * 0.58, Math.PI, 0); ctx.fill();
+      ctx.beginPath(); ctx.arc(half - 16, half + 4, half * 0.2, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(half + 16, half + 4, half * 0.2, 0, Math.PI * 2); ctx.fill();
+    } else if (hairStyle === 3) {
+      ctx.beginPath(); ctx.arc(half, half - 18, half * 0.6, Math.PI, 0); ctx.fill();
+      ctx.beginPath(); ctx.rect(half - half * 0.5, half - 18, half, half * 0.4); ctx.fill();
+    } else {
+      ctx.beginPath(); ctx.arc(half, half - 16, half * 0.55, Math.PI, 0); ctx.fill();
+      for (var s = 0; s < 5; s++) {
+        var ang = Math.PI + (s / 4) * Math.PI * 0.6 + 0.2;
+        ctx.fillRect(half + Math.cos(ang) * half * 0.45 - 1, half + Math.sin(ang) * half * 0.45 - 6, 2, 14);
+      }
+    }
+    var eyeColor = "hsl(" + ((hue + 120) % 360) + ",90%," + (45 + (seed % 15)) + "%)";
+    ctx.fillStyle = "#fff"; ctx.beginPath();
+    ctx.ellipse(half - 12, half + 2, 6, 7, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(half + 12, half + 2, 6, 7, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = eyeColor; ctx.beginPath();
+    ctx.ellipse(half - 12, half + 3, 4, 5.5, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(half + 12, half + 3, 4, 5.5, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = "#111"; ctx.beginPath();
+    ctx.ellipse(half - 12, half + 3, 2.5, 4, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(half + 12, half + 3, 2.5, 4, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = "#fff"; ctx.beginPath();
+    ctx.arc(half - 14, half - 1, 1.5, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(half + 10, half - 1, 1.5, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = "hsl(" + skinHue + ",15%," + (55 + ((seed >> 6) % 10)) + "%)";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.arc(half - 6, half + 12, 3, 0, Math.PI, 0); ctx.stroke();
+    ctx.beginPath(); ctx.arc(half + 6, half + 12, 3, 0, Math.PI, 0); ctx.stroke();
+    ctx.fillStyle = "hsl(" + ((hue + 160) % 360) + ",70%," + (65 + ((seed >> 7) % 10)) + "%)";
+    ctx.beginPath(); ctx.arc(half, half + 6, 3, Math.PI, 0); ctx.fill();
+    ctx.fillStyle = "rgba(255,255,255," + (0.15 + (seed % 10) * 0.02) + ")";
+    for (var d = 0; d < 8; d++) {
+      var ang2 = (d / 8) * Math.PI * 2 + (seed * 0.1);
+      var dist = Math.abs(((seed >> (d * 3)) % 10)) + 20;
+      var r2 = 1 + ((seed >> (d * 2)) % 3);
+      ctx.beginPath(); ctx.arc(half + Math.cos(ang2) * dist, half + Math.sin(ang2) * dist, r2, 0, Math.PI * 2); ctx.fill();
+    }
+    setAvatar(c.toDataURL());
   } catch (e) {
     regenerateAvatar();
   }
