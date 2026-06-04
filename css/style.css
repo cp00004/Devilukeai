@@ -183,8 +183,9 @@ a { color: var(--accent); text-decoration: none; }
   align-items: center;
   justify-content: flex-end;
   height: 64px;
-  gap: 24px;
+  gap: 12px;
   padding: 0 8px;
+  overflow: visible;
 }
 .nav-logo {
   display: flex;
@@ -2234,7 +2235,7 @@ a { color: var(--accent); text-decoration: none; }
 }
 \n
 /* --- Notifications Dropdown --- */
-.notifications-dropdown { position: relative; display: inline-block; margin-right: 5px; }
+.notifications-dropdown { position: relative; display: inline-flex; align-items: center; }
 .notif-btn {
   background: transparent; border: none; font-size: 1.4rem;
   cursor: pointer; padding: 6px; border-radius: 50%; transition: var(--transition);
