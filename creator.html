@@ -86,19 +86,16 @@
       <div class="creator-profile-info">
         <h1 class="creator-profile-name" id="creatorName">...</h1>
         <p class="creator-profile-bio" id="creatorBio">Character creator</p>
-        <div class="creator-profile-stats">
-          <div class="creator-profile-stat">
-            <div class="creator-profile-stat-value" id="creatorBotCount">0</div>
-            <div class="creator-profile-stat-label">Bots</div>
-          </div>
-          <div class="creator-profile-stat">
-            <div class="creator-profile-stat-value" id="creatorChatCount">0</div>
-            <div class="creator-profile-stat-label">Total Chats</div>
+          <div class="creator-profile-stats">
+            <div class="creator-profile-stat">
+              <div class="creator-profile-stat-value" id="creatorBotCount">0</div>
+              <div class="creator-profile-stat-label">Bots</div>
+            </div>
           </div>
         </div>
-      </div>
-      <div class="creator-profile-actions">
-        <a href="index.html" class="btn btn-secondary" style="font-size:0.85rem">&larr; Back</a>
+        <div class="creator-profile-actions">
+          <button class="btn btn-secondary" id="followBtn" style="font-size:0.85rem" onclick="toggleFollow()">Follow</button>
+          <a href="index.html" class="btn btn-secondary" style="font-size:0.85rem">&larr; Back</a>
       </div>
     </div>
 
@@ -119,22 +116,14 @@
     <p>Deviluke AI &mdash; 18+ only. All characters are fictional. &copy; 2026</p>
   </footer>
 
-  <script src="js/app-main.js?v=55"></script>
+  <script src="js/app-main.js?v=51"></script>
   <script>
-    function getLifetimeMsgCount(id) {
-      var key = "deviluke_chats_" + id;
-      try {
-        var chats = JSON.parse(localStorage.getItem(key));
-        if (!Array.isArray(chats)) return 0;
-        return chats.reduce(function(sum, c) {
-          return sum + (Array.isArray(c.messages) ? c.messages.length : 0);
-        }, 0);
-      } catch(e) { return 0; }
-    }
+    var _currentCreator = "";
 
     function renderCreatorPage() {
       var params = new URLSearchParams(location.search);
       var creator = params.get("creator");
+      _currentCreator = creator;
       if (!creator) {
         document.getElementById("creatorName").textContent = "No creator specified";
         document.getElementById("creatorBotsTitle").textContent = "";
@@ -159,8 +148,8 @@
       }
 
       chars.sort(function(a, b) {
-        var popA = getLifetimeMsgCount(a.id);
-        var popB = getLifetimeMsgCount(b.id);
+        var popA = getTotalMsgs(a.id);
+        var popB = getTotalMsgs(b.id);
         if (popA !== popB) return popB - popA;
         return a.id > b.id ? 1 : -1;
       });
@@ -187,11 +176,16 @@
 
       // Stats
       document.getElementById("creatorBotCount").textContent = chars.length;
-      var totalChats = chars.reduce(function(sum, c) {
-        return sum + getLifetimeMsgCount(c.id);
-      }, 0);
-      document.getElementById("creatorChatCount").textContent = totalChats;
       document.getElementById("creatorBotsTitle").textContent = "Characters (" + chars.length + ")";
+
+      // Follow button
+      var fbBtn = document.getElementById("followBtn");
+      if (typeof isFollowingCreator === "function") {
+        fbBtn.style.display = "inline-block";
+        fbBtn.textContent = isFollowingCreator(creator) ? "Unfollow" : "Follow";
+      } else {
+        fbBtn.style.display = "none";
+      }
 
       var grid = document.getElementById("creatorGrid");
       var empty = document.getElementById("creatorEmpty");
@@ -211,8 +205,8 @@
           : "";
         var fallback = '<div class="my-bot-card-fallback" style="display:' + (c.imageUrl ? "none" : "flex") + ";background:" + (c.color || "var(--accent)") + '">' + (c.avatar || c.name.charAt(0).toUpperCase()) + "</div>";
         var tags = (c.tags || []).slice(0,3).map(function(t) { return '<span class="my-bot-tag">' + t + "</span>"; }).join("");
-        var count = getLifetimeMsgCount(c.id);
-        var countText = count + " message" + (count !== 1 ? "s" : "");
+        var count = getTotalMsgs(c.id);
+        var countText = count + " message" + (count !== 1 ? "s" : "") + " total";
 
         return '<div class="my-bot-card">'
           + '<div class="my-bot-card-media">'
@@ -220,16 +214,22 @@
             + '<div class="my-bot-card-color-bar" style="background:' + (c.color || "var(--accent)") + '"></div>'
           + "</div>"
           + '<div class="my-bot-card-body">'
-            + '<h3 class="my-bot-card-name">' + c.name + "</h3>"
+            + '<h3 class="my-bot-card-name" style="color:var(--accent)">' + c.name + "</h3>"
             + '<p class="my-bot-card-desc">' + (c.description || "") + "</p>"
             + '<div class="my-bot-card-tags">' + tags + "</div>"
-            + '<div class="chat-count" style="margin-top:8px;font-size:0.8rem;color:var(--text-secondary)">' + countText + "</div>"
+            + '<div class="chat-count" style="margin-top:8px;font-size:0.8rem;color:var(--text-muted)">' + countText + "</div>"
           + "</div>"
           + '<div class="my-bot-card-actions">'
             + '<a href="chat.html?char=' + c.id + '" class="btn btn-primary my-bot-action-btn">Chat</a>'
           + "</div>"
         + "</div>";
       }).join("");
+    }
+
+    function toggleFollow() {
+      if (typeof toggleFollowCreator !== "function" || !_currentCreator) return;
+      var nowFollowing = toggleFollowCreator(_currentCreator);
+      document.getElementById("followBtn").textContent = nowFollowing ? "Unfollow" : "Follow";
     }
 
     document.addEventListener("DOMContentLoaded", function() {
