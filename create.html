@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Create Character â€” Deviluke AI</title>
-  <link rel="stylesheet" href="css/style.css?v=52">
+  <link rel="stylesheet" href="css/style.css?v=59">
   <link rel="icon" href="d.ai.png?v=51">
   <link rel="manifest" href="manifest.json">
 </head>
@@ -88,9 +88,9 @@
           </div>
         </div>
       </div>
-            <div class="notifications-dropdown">
-        <button class="notif-btn" onclick="toggleNotifDropdown()" title="Notifications">
-          🔔<span class="notif-badge" id="notifBadge">3</span>
+                  <div class="notifications-dropdown" style="position:relative;display:inline-flex;align-items:center;">
+        <button class="notif-btn" onclick="toggleNotifDropdown()" title="Notifications" style="background:transparent;border:none;font-size:1.4rem;cursor:pointer;padding:6px;border-radius:50%;color:#fff;position:relative;display:flex;align-items:center;">
+          &#128276;<span class="notif-badge" id="notifBadge" style="position:absolute;top:0;right:0;background:#ef4444;color:#fff;font-size:0.65rem;font-weight:bold;width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;">3</span>
         </button>
         <div class="notif-dropdown-menu" id="notifDropdown">
           <div class="notif-header">Notifications</div>
@@ -102,6 +102,23 @@
                 <div class="notif-time">2 mins ago</div>
               </div>
             </div>
+            <div class="notif-item">
+              <img src="assets/chars/char4.svg" class="notif-avatar" onerror="this.style.display='none'">
+              <div class="notif-content">
+                <strong>Velvet Noir</strong> replied: "You think you can handle me?"
+                <div class="notif-time">1 hr ago</div>
+              </div>
+            </div>
+            <div class="notif-item">
+              <img src="assets/chars/char5.svg" class="notif-avatar" onerror="this.style.display='none'">
+              <div class="notif-content">
+                <strong>Rex Talon</strong> liked your message.
+                <div class="notif-time">3 hrs ago</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
             <div class="notif-item">
               <img src="assets/chars/char4.svg" class="notif-avatar" onerror="this.style.display='none'">
               <div class="notif-content">
@@ -270,7 +287,7 @@
   </div>
 
   <script src="https://js.puter.com/v2/"></script>
-  <script src="js/app-main.js?v=56"></script>
+  <script src="js/app-main.js?v=59"></script>
 
   <script>
     document.addEventListener("DOMContentLoaded", function() {
