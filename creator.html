@@ -79,16 +79,33 @@
     </div>
   </nav>
 
-  <div class="my-bots-page">
-    <div class="my-bots-header">
-      <div>
-        <h1 class="my-bots-title" id="creatorTitle">Characters by ...</h1>
-        <p class="my-bots-sub" id="creatorSub">Click a character to start chatting.</p>
+  <div class="creator-profile" id="creatorPage">
+    <div class="creator-profile-header" id="creatorHeader">
+      <div class="creator-avatar-fallback" id="creatorAvatarFallback">?</div>
+      <img class="creator-avatar" id="creatorAvatar" src="" alt="" style="display:none">
+      <div class="creator-profile-info">
+        <h1 class="creator-profile-name" id="creatorName">...</h1>
+        <p class="creator-profile-bio" id="creatorBio">Character creator</p>
+        <div class="creator-profile-stats">
+          <div class="creator-profile-stat">
+            <div class="creator-profile-stat-value" id="creatorBotCount">0</div>
+            <div class="creator-profile-stat-label">Bots</div>
+          </div>
+          <div class="creator-profile-stat">
+            <div class="creator-profile-stat-value" id="creatorChatCount">0</div>
+            <div class="creator-profile-stat-label">Total Chats</div>
+          </div>
+        </div>
       </div>
-      <a href="index.html" class="btn btn-secondary my-bots-create-btn">&larr; Back to All</a>
+      <div class="creator-profile-actions">
+        <a href="index.html" class="btn btn-secondary" style="font-size:0.85rem">&larr; Back</a>
+      </div>
     </div>
 
-    <div class="my-bots-grid" id="creatorGrid"></div>
+    <div class="creator-bots-section">
+      <h2 class="creator-bots-title" id="creatorBotsTitle">Characters</h2>
+      <div class="my-bots-grid" id="creatorGrid"></div>
+    </div>
 
     <div class="my-bots-empty" id="creatorEmpty" style="display:none">
       <div class="my-bots-empty-icon">🔮</div>
@@ -119,13 +136,13 @@
       var params = new URLSearchParams(location.search);
       var creator = params.get("creator");
       if (!creator) {
-        document.getElementById("creatorTitle").textContent = "No creator specified";
-        document.getElementById("creatorSub").textContent = "Browse characters from the homepage.";
+        document.getElementById("creatorName").textContent = "No creator specified";
+        document.getElementById("creatorBotsTitle").textContent = "";
+        document.getElementById("creatorGrid").style.display = "none";
         return;
       }
 
-      document.getElementById("creatorTitle").textContent = "Characters by " + creator;
-      document.title = creator + " — Character Creator | Deviluke AI";
+      document.title = creator + " — Creator Profile | Deviluke AI";
 
       var all = [];
       if (typeof defaultCharacters !== "undefined") {
@@ -147,6 +164,34 @@
         if (popA !== popB) return popB - popA;
         return a.id > b.id ? 1 : -1;
       });
+
+      // Set profile
+      document.getElementById("creatorName").textContent = creator;
+
+      // Avatar: use first character's image if available
+      if (chars.length > 0 && chars[0].imageUrl) {
+        var av = document.getElementById("creatorAvatar");
+        var fb = document.getElementById("creatorAvatarFallback");
+        av.src = chars[0].imageUrl;
+        av.alt = creator;
+        av.style.display = "block";
+        fb.style.display = "none";
+        av.onerror = function() {
+          av.style.display = "none";
+          fb.style.display = "flex";
+          fb.textContent = creator.charAt(0).toUpperCase();
+        };
+      } else {
+        document.getElementById("creatorAvatarFallback").textContent = creator.charAt(0).toUpperCase();
+      }
+
+      // Stats
+      document.getElementById("creatorBotCount").textContent = chars.length;
+      var totalChats = chars.reduce(function(sum, c) {
+        return sum + getLifetimeMsgCount(c.id);
+      }, 0);
+      document.getElementById("creatorChatCount").textContent = totalChats;
+      document.getElementById("creatorBotsTitle").textContent = "Characters (" + chars.length + ")";
 
       var grid = document.getElementById("creatorGrid");
       var empty = document.getElementById("creatorEmpty");
