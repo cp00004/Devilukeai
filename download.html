@@ -377,9 +377,27 @@
           </div>
         </div>
       </div>
-      <div class="notifications-dropdown">
+      
+            <div class="notif-item">
+              <img src="assets/chars/char4.svg" class="notif-avatar" onerror="this.style.display='none'">
+              <div class="notif-content">
+                <strong>Velvet Noir</strong> replied: "You think you can handle me?"
+                <div class="notif-time">1 hr ago</div>
+              </div>
+            </div>
+            <div class="notif-item">
+              <img src="assets/chars/char5.svg" class="notif-avatar" onerror="this.style.display='none'">
+              <div class="notif-content">
+                <strong>Rex Talon</strong> liked your message.
+                <div class="notif-time">3 hrs ago</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+            <div class="notifications-dropdown">
         <button class="notif-btn" onclick="toggleNotifDropdown()" title="Notifications">
-          🔔<span class="notif-badge">3</span>
+          🔔<span class="notif-badge" id="notifBadge">3</span>
         </button>
         <div class="notif-dropdown-menu" id="notifDropdown">
           <div class="notif-header">Notifications</div>
