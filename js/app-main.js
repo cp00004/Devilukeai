@@ -158,16 +158,22 @@ function getTotalMsgs(charId) {
   return map[String(charId)] || 0;
 }
 
-function compressImage(dataUrl, maxW=120, quality=0.6) {
+function compressImage(dataUrl, maxW=3840, quality=0.95) {
   return new Promise(resolve => {
     const img = new Image();
     img.onload = () => {
       try {
         const c = document.createElement("canvas");
-        const scale = Math.min(1, maxW / img.width);
-        c.width = Math.round(img.width * scale) || 1;
-        c.height = Math.round(img.height * scale) || 1;
-        c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+        var w = img.width, h = img.height;
+        if (w > maxW || h > 2160) {
+          var scale = Math.min(maxW / w, 2160 / h);
+          w = Math.round(w * scale); h = Math.round(h * scale);
+        } else {
+          var scale = Math.min(maxW / w, 2160 / h);
+          if (scale > 1) { w = Math.round(w * scale); h = Math.round(h * scale); }
+        }
+        c.width = w; c.height = h;
+        c.getContext("2d").drawImage(img, 0, 0, w, h);
         resolve(c.toDataURL("image/jpeg", quality));
       } catch(e) { console.warn("compressImage: canvas error", e); resolve(dataUrl); }
     };
