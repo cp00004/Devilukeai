@@ -1,13 +1,13 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script>if (new URLSearchParams(location.search).has("update")) { location.replace("index.html"); }</script>
-  <title>Download â€” Deviluke AI</title>
+  <title>Download — Deviluke AI</title>
   <meta name="description" content="Download the Deviluke AI app for Android. Bring all your characters, personas, and chats to your mobile device.">
-  <link rel="stylesheet" href="css/style.css?v=60">
-  <link rel="icon" href="d.ai.png?v=51">
+  <link rel="stylesheet" href="css/style.css?v=61">
+  <link rel="icon" href="d.ai.png?v=52">
   <link rel="manifest" href="manifest.json">
   <style>
     .download-page {
@@ -353,7 +353,7 @@
     </nav>
   </aside>
 
-    <nav class="navbar">
+  <nav class="navbar">
     <div class="nav-inner">
       <span id="navUser"></span>
       <span id="syncStatus"></span>
@@ -379,128 +379,11 @@
       </div>
       <div class="notifications-dropdown" style="position:relative;display:inline-flex;align-items:center;">
         <button class="notif-btn" onclick="toggleNotifDropdown()" title="Notifications" style="background:transparent;border:none;font-size:1.4rem;cursor:pointer;padding:6px;border-radius:50%;color:#fff;position:relative;display:flex;align-items:center;">
-          &#128276;<span class="notif-badge" id="notifBadge" style="position:absolute;top:0;right:0;background:#ef4444;color:#fff;font-size:0.65rem;font-weight:bold;width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;">3</span>
+          &#128276;<span class="notif-badge" id="notifBadge" style="position:absolute;top:0;right:0;background:#ef4444;color:#fff;font-size:0.65rem;font-weight:bold;width:16px;height:16px;border-radius:50%;display:none;align-items:center;justify-content:center;"></span>
         </button>
         <div class="notif-dropdown-menu" id="notifDropdown">
           <div class="notif-header">Notifications</div>
-          <div class="notif-list" id="notifList">
-            <div class="notif-item">
-              <img src="assets/chars/char1.svg" class="notif-avatar" onerror="this.style.display='none'">
-              <div class="notif-content">
-                <strong>Luna Verath</strong> commented: "I've been waiting for you."
-                <div class="notif-time">2 mins ago</div>
-              </div>
-            </div>
-            <div class="notif-item">
-              <img src="assets/chars/char4.svg" class="notif-avatar" onerror="this.style.display='none'">
-              <div class="notif-content">
-                <strong>Velvet Noir</strong> replied: "You think you can handle me?"
-                <div class="notif-time">1 hr ago</div>
-              </div>
-            </div>
-            <div class="notif-item">
-              <img src="assets/chars/char5.svg" class="notif-avatar" onerror="this.style.display='none'">
-              <div class="notif-content">
-                <strong>Rex Talon</strong> liked your message.
-                <div class="notif-time">3 hrs ago</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <button class="settings-btn" onclick="openSettings()" title="Settings">&#9881;&#65039;</button>
-    </div>
-  </nav>
-  </aside>
-
-  <nav class="navbar">
-    <div class="nav-inner">
-      <span id="navUser"></span>
-      <span id="syncStatus"></span>
-      <div class="lang-dropdown">
-        <button class="lang-btn" onclick="toggleLangDropdown()" title="Change Language">&#127760;</button>
-        <div class="lang-dropdown-menu" id="langDropdown">
-          <input type="text" id="langSearch" placeholder="Search language..." onkeyup="filterLangs()">
-          <div class="lang-list" id="langList">
-            <button onclick="setLanguage('en')">English</button>
-            <button onclick="setLanguage('es')">Spanish</button>
-            <button onclick="setLanguage('fr')">French</button>
-            <button onclick="setLanguage('de')">German</button>
-            <button onclick="setLanguage('it')">Italian</button>
-            <button onclick="setLanguage('pt')">Portuguese</button>
-            <button onclick="setLanguage('ru')">Russian</button>
-            <button onclick="setLanguage('ja')">Japanese</button>
-            <button onclick="setLanguage('ko')">Korean</button>
-            <button onclick="setLanguage('zh-CN')">Chinese (Simplified)</button>
-            <button onclick="setLanguage('ar')">Arabic</button>
-            <button onclick="setLanguage('hi')">Hindi</button>
-          </div>
-        </div>
-      </div>
-      
-            <div class="notif-item">
-              <img src="assets/chars/char4.svg" class="notif-avatar" onerror="this.style.display='none'">
-              <div class="notif-content">
-                <strong>Velvet Noir</strong> replied: "You think you can handle me?"
-                <div class="notif-time">1 hr ago</div>
-              </div>
-            </div>
-            <div class="notif-item">
-              <img src="assets/chars/char5.svg" class="notif-avatar" onerror="this.style.display='none'">
-              <div class="notif-content">
-                <strong>Rex Talon</strong> liked your message.
-                <div class="notif-time">3 hrs ago</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-                  <div class="notifications-dropdown" style="position:relative;display:inline-flex;align-items:center;">
-        <button class="notif-btn" onclick="toggleNotifDropdown()" title="Notifications" style="background:transparent;border:none;font-size:1.4rem;cursor:pointer;padding:6px;border-radius:50%;color:#fff;position:relative;display:flex;align-items:center;">
-          &#128276;<span class="notif-badge" id="notifBadge" style="position:absolute;top:0;right:0;background:#ef4444;color:#fff;font-size:0.65rem;font-weight:bold;width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;">3</span>
-        </button>
-        <div class="notif-dropdown-menu" id="notifDropdown">
-          <div class="notif-header">Notifications</div>
-          <div class="notif-list" id="notifList">
-            <div class="notif-item">
-              <img src="assets/chars/char1.svg" class="notif-avatar" onerror="this.style.display='none'">
-              <div class="notif-content">
-                <strong>Luna Verath</strong> commented: "I've been waiting for you."
-                <div class="notif-time">2 mins ago</div>
-              </div>
-            </div>
-            <div class="notif-item">
-              <img src="assets/chars/char4.svg" class="notif-avatar" onerror="this.style.display='none'">
-              <div class="notif-content">
-                <strong>Velvet Noir</strong> replied: "You think you can handle me?"
-                <div class="notif-time">1 hr ago</div>
-              </div>
-            </div>
-            <div class="notif-item">
-              <img src="assets/chars/char5.svg" class="notif-avatar" onerror="this.style.display='none'">
-              <div class="notif-content">
-                <strong>Rex Talon</strong> liked your message.
-                <div class="notif-time">3 hrs ago</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-            <div class="notif-item">
-              <img src="assets/chars/char4.svg" class="notif-avatar" onerror="this.style.display='none'">
-              <div class="notif-content">
-                <strong>Velvet Noir</strong> replied: "You think you can handle me?"
-                <div class="notif-time">1 hr ago</div>
-              </div>
-            </div>
-            <div class="notif-item">
-              <img src="assets/chars/char5.svg" class="notif-avatar" onerror="this.style.display='none'">
-              <div class="notif-content">
-                <strong>Rex Talon</strong> liked your message.
-                <div class="notif-time">3 hrs ago</div>
-              </div>
-            </div>
-          </div>
+          <div class="notif-list" id="notifList"></div>
         </div>
       </div>
       <button class="settings-btn" onclick="openSettings()" title="Settings">&#9881;&#65039;</button>
@@ -523,23 +406,23 @@
       <!-- Features -->
       <div class="download-features">
         <div class="download-feature">
-          <span class="download-feature-icon">ðŸ¤–</span>
+          <span class="download-feature-icon">🤖</span>
           <span>All your characters & bots</span>
         </div>
         <div class="download-feature">
-          <span class="download-feature-icon">ðŸŒ™</span>
+          <span class="download-feature-icon">🌙</span>
           <span>Native dark mode</span>
         </div>
         <div class="download-feature">
-          <span class="download-feature-icon">ðŸ””</span>
+          <span class="download-feature-icon">🔔</span>
           <span>Push notifications</span>
         </div>
         <div class="download-feature">
-          <span class="download-feature-icon">âš¡</span>
+          <span class="download-feature-icon">⚡</span>
           <span>Faster than the browser</span>
         </div>
         <div class="download-feature">
-          <span class="download-feature-icon">ðŸ”’</span>
+          <span class="download-feature-icon">🔒</span>
           <span>Secure & private</span>
         </div>
         <div class="download-feature">
@@ -551,14 +434,14 @@
       <!-- Download Stats -->
       <div class="download-stats">
         <div class="stat-item">
-          <span class="stat-num" id="totalDownloads">â€”</span>
+          <span class="stat-num" id="totalDownloads">—</span>
           <span class="stat-label">Total Downloads</span>
         </div>
       </div>
 
       <!-- How to get the APK -->
       <div class="apk-steps-box">
-        <div class="apk-steps-title">ðŸ“² How to get the Android App</div>
+        <div class="apk-steps-title">📲 How to get the Android App</div>
         <ol class="apk-steps-list">
           <li>
             <span class="apk-step-num">1</span>
@@ -636,7 +519,7 @@
 
   <script src="js/app-main.js?v=60"></script>
   <script>
-    // Download counter â€” uses CountAPI for a global count
+    // Download counter — uses CountAPI for a global count
     (function() {
       const API_NS = 'devilukeai';
       const API_KEY = 'downloads';
@@ -664,7 +547,7 @@
         if (!el) return;
         fetch(COUNT_URL).then(function(r) { return r.json(); }).then(function(data) {
           if (data && typeof data.value === 'number') animateNumber(el, data.value);
-        }).catch(function() { el.textContent = 'â€”'; });
+        }).catch(function() { el.textContent = '—'; });
       }
 
       function recordDownload() {

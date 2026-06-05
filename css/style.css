@@ -1018,7 +1018,7 @@ a { color: var(--accent); text-decoration: none; }
 }
 .login-btn:hover { background: var(--accent-secondary); }
 
-.user-dropdown { position: relative; display: inline-block; }
+.user-dropdown { position: relative; display: inline-block; z-index: 2; }
 .user-dropdown-menu {
   display: none;
   position: absolute;
@@ -2249,7 +2249,7 @@ a { color: var(--accent); text-decoration: none; }
 .notif-dropdown-menu {
   display: none; position: absolute; right: 0; top: 45px; width: 320px;
   background: #111111; border: 1px solid #333333; border-radius: 12px;
-  box-shadow: 0 8px 30px rgba(0,0,0,0.6); z-index: 1000; overflow: hidden;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.6); z-index: 1001; overflow: hidden;
 }
 .notif-dropdown-menu.show { display: flex; flex-direction: column; }
 .notif-header {

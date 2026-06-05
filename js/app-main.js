@@ -3066,13 +3066,87 @@ document.addEventListener("click", (e) => {
 })();
 
 /* --- Notifications Logic --- */
+function updateNotifBadge() {
+  try {
+    var comments = JSON.parse(localStorage.getItem("deviluke_bot_comments") || "[]");
+    var badge = document.getElementById("notifBadge");
+    if (!badge) return;
+    if (comments.length > 0) {
+      badge.textContent = comments.length;
+      badge.style.display = "flex";
+    } else {
+      badge.style.display = "none";
+    }
+  } catch(e) { console.warn("Badge update error:", e); }
+}
+
+function getNotifTimeAgo(ts) {
+  var diff = Date.now() - ts;
+  var mins = Math.floor(diff / 60000);
+  if (mins < 1) return "just now";
+  if (mins < 60) return mins + "m ago";
+  var hrs = Math.floor(mins / 60);
+  if (hrs < 24) return hrs + "h ago";
+  var days = Math.floor(hrs / 24);
+  return days + "d ago";
+}
+
+function getNotifCharName(botName) {
+  if (typeof characters !== "undefined" && characters.length) {
+    var found = characters.find(function(c) { return c.name === botName || c.id === botName; });
+    if (found) return found.name;
+  }
+  return botName;
+}
+
+function getNotifCharAvatar(botName) {
+  if (typeof characters !== "undefined" && characters.length) {
+    var found = characters.find(function(c) { return c.name === botName || c.id === botName; });
+    if (found && found.avatar) return found.avatar;
+  }
+  return null;
+}
+
 function toggleNotifDropdown() {
-  document.getElementById("notifDropdown")?.classList.toggle("show");
+  var dd = document.getElementById("notifDropdown");
+  if (!dd) return;
+  dd.classList.toggle("show");
+  if (dd.classList.contains("show")) {
+    var list = document.getElementById("notifList");
+    if (!list) return;
+    try {
+      var comments = JSON.parse(localStorage.getItem("deviluke_bot_comments") || "[]");
+      if (comments.length === 0) {
+        list.innerHTML = "<div class=\"notif-empty\">No comments yet</div>";
+      } else {
+        list.innerHTML = comments.slice().reverse().map(function(c) {
+          var avatar = getNotifCharAvatar(c.botName);
+          var avatarHtml = avatar
+            ? "<img src=\"" + avatar.replace(/"/g, "&quot;") + "\" class=\"notif-avatar\" onerror=\"this.style.display='none'\">"
+            : "<div class=\"notif-avatar\" style=\"background:linear-gradient(135deg,#8b5cf6,#3b82f6);display:flex;align-items:center;justify-content:center;font-size:1rem;font-weight:bold;color:#fff;\">" + (c.commenter ? c.commenter.charAt(0).toUpperCase() : "?") + "</div>";
+          var name = getNotifCharName(c.botName);
+          return "<div class=\"notif-item\">"
+            + avatarHtml
+            + "<div class=\"notif-content\">"
+            + "<strong>" + (c.commenter || "Anonymous") + "</strong> on <em>" + name + "</em>: \"" + c.text.replace(/"/g, "&quot;") + "\""
+            + "<div class=\"notif-time\">" + getNotifTimeAgo(c.ts) + "</div>"
+            + "</div></div>";
+        }).join("");
+      }
+    } catch(e) {
+      list.innerHTML = "<div class=\"notif-empty\">Could not load comments</div>";
+    }
+  }
 }
 window.toggleNotifDropdown = toggleNotifDropdown;
 
-document.addEventListener("click", (e) => {
+document.addEventListener("click", function(e) {
   if (!e.target.closest(".notifications-dropdown")) {
     document.getElementById("notifDropdown")?.classList.remove("show");
   }
+});
+
+document.addEventListener("DOMContentLoaded", updateNotifBadge);
+window.addEventListener("storage", function(e) {
+  if (e.key === "deviluke_bot_comments") updateNotifBadge();
 });

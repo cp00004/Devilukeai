@@ -1,11 +1,11 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Create Character â€” Deviluke AI</title>
-  <link rel="stylesheet" href="css/style.css?v=60">
-  <link rel="icon" href="d.ai.png?v=51">
+  <title>Create Character — Deviluke AI</title>
+  <link rel="stylesheet" href="css/style.css?v=61">
+  <link rel="icon" href="d.ai.png?v=52">
   <link rel="manifest" href="manifest.json">
 </head>
 <body>
@@ -46,7 +46,7 @@
     </nav>
   </aside>
 
-    <nav class="navbar">
+  <nav class="navbar">
     <div class="nav-inner">
       <span id="navUser"></span>
       <span id="syncStatus"></span>
@@ -72,128 +72,11 @@
       </div>
       <div class="notifications-dropdown" style="position:relative;display:inline-flex;align-items:center;">
         <button class="notif-btn" onclick="toggleNotifDropdown()" title="Notifications" style="background:transparent;border:none;font-size:1.4rem;cursor:pointer;padding:6px;border-radius:50%;color:#fff;position:relative;display:flex;align-items:center;">
-          &#128276;<span class="notif-badge" id="notifBadge" style="position:absolute;top:0;right:0;background:#ef4444;color:#fff;font-size:0.65rem;font-weight:bold;width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;">3</span>
+          &#128276;<span class="notif-badge" id="notifBadge" style="position:absolute;top:0;right:0;background:#ef4444;color:#fff;font-size:0.65rem;font-weight:bold;width:16px;height:16px;border-radius:50%;display:none;align-items:center;justify-content:center;"></span>
         </button>
         <div class="notif-dropdown-menu" id="notifDropdown">
           <div class="notif-header">Notifications</div>
-          <div class="notif-list" id="notifList">
-            <div class="notif-item">
-              <img src="assets/chars/char1.svg" class="notif-avatar" onerror="this.style.display='none'">
-              <div class="notif-content">
-                <strong>Luna Verath</strong> commented: "I've been waiting for you."
-                <div class="notif-time">2 mins ago</div>
-              </div>
-            </div>
-            <div class="notif-item">
-              <img src="assets/chars/char4.svg" class="notif-avatar" onerror="this.style.display='none'">
-              <div class="notif-content">
-                <strong>Velvet Noir</strong> replied: "You think you can handle me?"
-                <div class="notif-time">1 hr ago</div>
-              </div>
-            </div>
-            <div class="notif-item">
-              <img src="assets/chars/char5.svg" class="notif-avatar" onerror="this.style.display='none'">
-              <div class="notif-content">
-                <strong>Rex Talon</strong> liked your message.
-                <div class="notif-time">3 hrs ago</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <button class="settings-btn" onclick="openSettings()" title="Settings">&#9881;&#65039;</button>
-    </div>
-  </nav>
-  </aside>
-
-  <nav class="navbar">
-    <div class="nav-inner">
-      <span id="navUser"></span>
-      <span id="syncStatus"></span>
-      <div class="lang-dropdown">
-        <button class="lang-btn" onclick="toggleLangDropdown()" title="Change Language">&#127760;</button>
-        <div class="lang-dropdown-menu" id="langDropdown">
-          <input type="text" id="langSearch" placeholder="Search language..." onkeyup="filterLangs()">
-          <div class="lang-list" id="langList">
-            <button onclick="setLanguage('en')">English</button>
-            <button onclick="setLanguage('es')">Spanish</button>
-            <button onclick="setLanguage('fr')">French</button>
-            <button onclick="setLanguage('de')">German</button>
-            <button onclick="setLanguage('it')">Italian</button>
-            <button onclick="setLanguage('pt')">Portuguese</button>
-            <button onclick="setLanguage('ru')">Russian</button>
-            <button onclick="setLanguage('ja')">Japanese</button>
-            <button onclick="setLanguage('ko')">Korean</button>
-            <button onclick="setLanguage('zh-CN')">Chinese (Simplified)</button>
-            <button onclick="setLanguage('ar')">Arabic</button>
-            <button onclick="setLanguage('hi')">Hindi</button>
-          </div>
-        </div>
-      </div>
-      
-            <div class="notif-item">
-              <img src="assets/chars/char4.svg" class="notif-avatar" onerror="this.style.display='none'">
-              <div class="notif-content">
-                <strong>Velvet Noir</strong> replied: "You think you can handle me?"
-                <div class="notif-time">1 hr ago</div>
-              </div>
-            </div>
-            <div class="notif-item">
-              <img src="assets/chars/char5.svg" class="notif-avatar" onerror="this.style.display='none'">
-              <div class="notif-content">
-                <strong>Rex Talon</strong> liked your message.
-                <div class="notif-time">3 hrs ago</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-                  <div class="notifications-dropdown" style="position:relative;display:inline-flex;align-items:center;">
-        <button class="notif-btn" onclick="toggleNotifDropdown()" title="Notifications" style="background:transparent;border:none;font-size:1.4rem;cursor:pointer;padding:6px;border-radius:50%;color:#fff;position:relative;display:flex;align-items:center;">
-          &#128276;<span class="notif-badge" id="notifBadge" style="position:absolute;top:0;right:0;background:#ef4444;color:#fff;font-size:0.65rem;font-weight:bold;width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;">3</span>
-        </button>
-        <div class="notif-dropdown-menu" id="notifDropdown">
-          <div class="notif-header">Notifications</div>
-          <div class="notif-list" id="notifList">
-            <div class="notif-item">
-              <img src="assets/chars/char1.svg" class="notif-avatar" onerror="this.style.display='none'">
-              <div class="notif-content">
-                <strong>Luna Verath</strong> commented: "I've been waiting for you."
-                <div class="notif-time">2 mins ago</div>
-              </div>
-            </div>
-            <div class="notif-item">
-              <img src="assets/chars/char4.svg" class="notif-avatar" onerror="this.style.display='none'">
-              <div class="notif-content">
-                <strong>Velvet Noir</strong> replied: "You think you can handle me?"
-                <div class="notif-time">1 hr ago</div>
-              </div>
-            </div>
-            <div class="notif-item">
-              <img src="assets/chars/char5.svg" class="notif-avatar" onerror="this.style.display='none'">
-              <div class="notif-content">
-                <strong>Rex Talon</strong> liked your message.
-                <div class="notif-time">3 hrs ago</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-            <div class="notif-item">
-              <img src="assets/chars/char4.svg" class="notif-avatar" onerror="this.style.display='none'">
-              <div class="notif-content">
-                <strong>Velvet Noir</strong> replied: "You think you can handle me?"
-                <div class="notif-time">1 hr ago</div>
-              </div>
-            </div>
-            <div class="notif-item">
-              <img src="assets/chars/char5.svg" class="notif-avatar" onerror="this.style.display='none'">
-              <div class="notif-content">
-                <strong>Rex Talon</strong> liked your message.
-                <div class="notif-time">3 hrs ago</div>
-              </div>
-            </div>
-          </div>
+          <div class="notif-list" id="notifList"></div>
         </div>
       </div>
       <button class="settings-btn" onclick="openSettings()" title="Settings">&#9881;&#65039;</button>
@@ -201,8 +84,8 @@
   </nav>
 
   <div class="create-page">
-    <h1>âœ¨ Create a Character</h1>
-    <p class="create-sub">Design your perfect companion â€” give them a look and personality.</p>
+    <h1>✨ Create a Character</h1>
+    <p class="create-sub">Design your perfect companion — give them a look and personality.</p>
 
     <div class="create-form-wrap">
       <form class="create-form" onsubmit="event.preventDefault();createCharacter()">
@@ -215,13 +98,13 @@
           <label>Character Image / GIF <span class="req">*</span></label>
           <div class="image-preview-area">
             <input type="url" id="charImageUrl" placeholder="Paste image URL (imgur, tenor, etc.)">
-            <div class="image-preview" id="imagePreview"><span>ðŸ–¼ï¸</span></div>
+            <div class="image-preview" id="imagePreview"><span>🖼️</span></div>
           </div>
           <div class="form-image-row">
             <span class="form-hint" style="font-size:0.8rem;margin:0">or upload from your computer:</span>
-            <button type="button" class="btn btn-secondary btn-sm" onclick="openFanArtSearch()">ðŸ” Search Fan Art</button>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="openFanArtSearch()">🔍 Search Fan Art</button>
             <input type="file" id="charImageFile" accept="image/*" style="display:none" onchange="handleImageFile(event)">
-            <button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('charImageFile').click()">ðŸ“ Choose File</button>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('charImageFile').click()">📁 Choose File</button>
             <span class="file-name" id="fileName"></span>
           </div>
         </div>
@@ -234,7 +117,7 @@
         <div class="form-group">
           <label>Personality <span class="req">*</span></label>
           <div class="form-inline-group">
-            <textarea id="charPersonality" rows="3" placeholder="Describe their personality in detail â€” how they act, talk, their quirks..."></textarea>
+            <textarea id="charPersonality" rows="3" placeholder="Describe their personality in detail — how they act, talk, their quirks..."></textarea>
             <button type="button" id="aiFillBtn" class="btn btn-secondary btn-sm" onclick="searchCharacterAI()" style="white-space:nowrap;flex-shrink:0">AI Auto-fill</button>
           </div>
           <p class="form-hint">Enter a character name above, then click AI Auto-fill to search Wikipedia and auto-fill personality, tags, and greeting.</p>
@@ -258,7 +141,7 @@
           <label>Greeting Message <span class="req">*</span></label>
           <div class="form-inline-group">
             <textarea id="charGreeting" rows="3" placeholder="The first thing your character says when someone starts chatting..."></textarea>
-            <button type="button" class="btn btn-secondary btn-sm" onclick="openGreetingAssistant()" style="white-space:nowrap;flex-shrink:0">âœ¨ AI Assist</button>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="openGreetingAssistant()" style="white-space:nowrap;flex-shrink:0">✨ AI Assist</button>
           </div>
         </div>
 
@@ -269,15 +152,15 @@
         </div>
 
         <div class="create-actions">
-          <button type="submit" class="btn btn-primary">âœ¨ Create Character</button>
-          <button type="button" class="btn btn-secondary" onclick="saveDraft()">ðŸ’¾ Save Draft</button>
+          <button type="submit" class="btn btn-primary">✨ Create Character</button>
+          <button type="button" class="btn btn-secondary" onclick="saveDraft()">💾 Save Draft</button>
           <a href="my-bots.html" class="btn btn-secondary">Cancel</a>
         </div>
       </form>
     </div>
 
     <div class="drafts-section" id="draftsSection">
-      <h3>ðŸ“ Drafts</h3>
+      <h3>📝 Drafts</h3>
       <div class="drafts-grid" id="draftsGrid"></div>
     </div>
   </div>
@@ -310,7 +193,7 @@
 
   <div class="settings-modal" id="greetAssistantModal">
     <div class="settings-panel" style="max-width:500px">
-      <h2>âœ¨ Greeting Assistant</h2>
+      <h2>✨ Greeting Assistant</h2>
       <p class="settings-sub">Describe the scene and I'll write a detailed opening line.</p>
       <div class="form-group">
         <label>Setting / Scene</label>
@@ -330,14 +213,14 @@
       </div>
       <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">
         <button class="btn btn-secondary" onclick="closeGreetingAssistant()">Cancel</button>
-        <button class="btn btn-primary" onclick="generateGreeting()">âœ¨ Generate</button>
+        <button class="btn btn-primary" onclick="generateGreeting()">✨ Generate</button>
       </div>
     </div>
   </div>
 
   <div class="settings-modal" id="daSearchModal">
     <div class="settings-panel" style="max-width:700px;max-height:95vh;overflow-y:auto">
-      <h2>ðŸ” Fan Art Search</h2>
+      <h2>🔍 Fan Art Search</h2>
       <p class="settings-sub" id="daSearchStatus">Search DeviantArt &amp; Reddit for fan art</p>
       <div id="daResults" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;margin:16px 0"></div>
       <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
