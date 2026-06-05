@@ -38,6 +38,55 @@
     })();
   </script>
 
+  <aside class="left-sidebar">
+    <a href="index.html" class="left-sidebar-logo">Deviluke AI</a>
+    <nav class="left-sidebar-nav">
+      <a href="index.html" class="left-sidebar-link">Characters</a>
+      <a href="chat.html" class="left-sidebar-link active">Chat</a>
+      <a href="personas.html" class="left-sidebar-link">Personas</a>
+      <a href="create.html" class="left-sidebar-link">Create</a>
+      <a href="my-bots.html" class="left-sidebar-link">My Bots</a>
+      <a href="download.html" class="left-sidebar-link">Download App</a>
+    </nav>
+  </aside>
+
+  <nav class="navbar">
+    <div class="nav-inner">
+      <span id="navUser"></span>
+      <span id="syncStatus"></span>
+      <div class="lang-dropdown">
+        <button class="lang-btn" onclick="toggleLangDropdown()" title="Change Language">&#127760;</button>
+        <div class="lang-dropdown-menu" id="langDropdown">
+          <input type="text" id="langSearch" placeholder="Search language..." onkeyup="filterLangs()">
+          <div class="lang-list" id="langList">
+            <button onclick="setLanguage('en')">English</button>
+            <button onclick="setLanguage('es')">Spanish</button>
+            <button onclick="setLanguage('fr')">French</button>
+            <button onclick="setLanguage('de')">German</button>
+            <button onclick="setLanguage('it')">Italian</button>
+            <button onclick="setLanguage('pt')">Portuguese</button>
+            <button onclick="setLanguage('ru')">Russian</button>
+            <button onclick="setLanguage('ja')">Japanese</button>
+            <button onclick="setLanguage('ko')">Korean</button>
+            <button onclick="setLanguage('zh-CN')">Chinese (Simplified)</button>
+            <button onclick="setLanguage('ar')">Arabic</button>
+            <button onclick="setLanguage('hi')">Hindi</button>
+          </div>
+        </div>
+      </div>
+      <div class="notifications-dropdown" style="position:relative;display:inline-flex;align-items:center;">
+        <button class="notif-btn" onclick="toggleNotifDropdown()" title="Notifications" style="background:transparent;border:none;font-size:1.4rem;cursor:pointer;padding:6px;border-radius:50%;color:#fff;position:relative;display:flex;align-items:center;">
+          &#128276;<span class="notif-badge" id="notifBadge" style="position:absolute;top:0;right:0;background:#ef4444;color:#fff;font-size:0.65rem;font-weight:bold;width:16px;height:16px;border-radius:50%;display:none;align-items:center;justify-content:center;"></span>
+        </button>
+        <div class="notif-dropdown-menu" id="notifDropdown">
+          <div class="notif-header">Notifications</div>
+          <div class="notif-list" id="notifList"></div>
+        </div>
+      </div>
+      <button class="settings-btn" onclick="openSettings()" title="Settings">&#9881;&#65039;</button>
+    </div>
+  </nav>
+
   <div class="chat-page">
     <aside class="chat-sidebar">
       <div class="chat-sidebar-header">

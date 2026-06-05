@@ -464,7 +464,8 @@ a { color: var(--accent); text-decoration: none; }
 /* ─── Chat Page ─── */
 .chat-page {
   display: flex;
-  height: 100vh;
+  height: calc(100vh - 64px);
+  margin-left: 220px;
 }
 
 .chat-sidebar {
@@ -2066,7 +2067,7 @@ a { color: var(--accent); text-decoration: none; }
   .character-card { border-radius: 12px; }
   .card-img { height: 160px !important; }
 
-  .chat-page { flex-direction: column; }
+  .chat-page { flex-direction: column; margin-left: 0; height: calc(100vh - 64px); }
   .chat-sidebar {
     width: 100% !important; height: 56px;
     flex-direction: row; align-items: center;
