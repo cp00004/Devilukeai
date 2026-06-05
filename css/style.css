@@ -465,7 +465,6 @@ a { color: var(--accent); text-decoration: none; }
 .chat-page {
   display: flex;
   height: calc(100vh - 64px);
-  margin-left: 220px;
 }
 
 .chat-sidebar {
@@ -2072,7 +2071,7 @@ a { color: var(--accent); text-decoration: none; }
   .character-card { border-radius: 12px; }
   .card-img { height: 160px !important; }
 
-  .chat-page { flex-direction: column; margin-left: 0; height: calc(100vh - 64px); }
+  .chat-page { flex-direction: column; margin-left: 0; height: calc(100vh - 122px); }
   .chat-sidebar {
     width: 100% !important; height: 56px;
     flex-direction: row; align-items: center;
@@ -2099,8 +2098,6 @@ a { color: var(--accent); text-decoration: none; }
   .settings-panel { width: 95vw !important; padding: 24px 20px !important; max-height: 90vh; overflow-y: auto; }
 
   .lang-dropdown-menu { right: -40px; width: 200px; }
-
-  .chat-page { padding-bottom: 58px; }
 
   .chat-tab-bar {
     position: fixed; left: 0; right: 0; bottom: 0;
