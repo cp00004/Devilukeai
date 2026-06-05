@@ -99,67 +99,8 @@
             <div class="notif-item">
               <img src="assets/chars/char5.svg" class="notif-avatar" onerror="this.style.display='none'">
               <div class="notif-content">
-                <strong>Rex Talon</strong> liked your message.
-                <div class="notif-time">3 hrs ago</div>
-              </div>
-            </div>
   <nav class="navbar">
-    <div class="nav-inner">
-      <span id="navUser"></span>
-      <span id="syncStatus"></span>
-      <div class="lang-dropdown">
-        <button class="lang-btn" onclick="toggleLangDropdown()" title="Change Language">&#127760;</button>
-        <div class="lang-dropdown-menu" id="langDropdown">
-          <input type="text" id="langSearch" placeholder="Search language..." onkeyup="filterLangs()">
-          <div class="lang-list" id="langList">
-            <button onclick="setLanguage('en')">English</button>
-            <button onclick="setLanguage('es')">Spanish</button>
-            <button onclick="setLanguage('fr')">French</button>
-            <button onclick="setLanguage('de')">German</button>
-            <button onclick="setLanguage('it')">Italian</button>
-            <button onclick="setLanguage('pt')">Portuguese</button>
-            <button onclick="setLanguage('ru')">Russian</button>
-            <button onclick="setLanguage('ja')">Japanese</button>
-            <button onclick="setLanguage('ko')">Korean</button>
-            <button onclick="setLanguage('zh-CN')">Chinese (Simplified)</button>
-            <button onclick="setLanguage('ar')">Arabic</button>
-            <button onclick="setLanguage('hi')">Hindi</button>
-          </div>
-        </div>
-      </div>
-      <div class="notifications-dropdown" style="position:relative;display:inline-flex;align-items:center;">
-        <button class="notif-btn" onclick="toggleNotifDropdown()" title="Notifications" style="background:transparent;border:none;font-size:1.4rem;cursor:pointer;padding:6px;border-radius:50%;color:#fff;position:relative;display:flex;align-items:center;">
-          &#128276;<span class="notif-badge" id="notifBadge" style="position:absolute;top:0;right:0;background:#ef4444;color:#fff;font-size:0.65rem;font-weight:bold;width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;">3</span>
-        </button>
-        <div class="notif-dropdown-menu" id="notifDropdown">
-          <div class="notif-header">Notifications</div>
-          <div class="notif-list" id="notifList">
-            <div class="notif-item">
-              <img src="assets/chars/char1.svg" class="notif-avatar" onerror="this.style.display='none'">
-              <div class="notif-content">
-                <strong>Luna Verath</strong> commented: "I've been waiting for you."
-                <div class="notif-time">2 mins ago</div>
-              </div>
-            </div>
-            <div class="notif-item">
-              <img src="assets/chars/char4.svg" class="notif-avatar" onerror="this.style.display='none'">
-              <div class="notif-content">
-                <strong>Velvet Noir</strong> replied: "You think you can handle me?"
-                <div class="notif-time">1 hr ago</div>
-              </div>
-            </div>
-            <div class="notif-item">
-              <img src="assets/chars/char5.svg" class="notif-avatar" onerror="this.style.display='none'">
-              <div class="notif-content">
-                <strong>Rex Talon</strong> liked your message.
-                <div class="notif-time">3 hrs ago</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <button class="settings-btn" onclick="openSettings()" title="Settings">&#9881;&#65039;</button>
-    </div>
+    <div id="navbar-root"></div>
   </nav>
 
   <div class="hero-banner-section">
