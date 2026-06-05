@@ -3066,13 +3066,23 @@ document.addEventListener("click", (e) => {
 })();
 
 /* --- Notifications Logic --- */
+function getNotifLastSeen() {
+  try { return parseInt(localStorage.getItem("deviluke_notif_last_seen")) || 0; } catch(e) { return 0; }
+}
+
+function setNotifLastSeen() {
+  try { localStorage.setItem("deviluke_notif_last_seen", Date.now()); } catch(e) {}
+}
+
 function updateNotifBadge() {
   try {
     var comments = JSON.parse(localStorage.getItem("deviluke_bot_comments") || "[]");
     var badge = document.getElementById("notifBadge");
     if (!badge) return;
-    if (comments.length > 0) {
-      badge.textContent = comments.length;
+    var lastSeen = getNotifLastSeen();
+    var unread = comments.filter(function(c) { return c.ts > lastSeen; }).length;
+    if (unread > 0) {
+      badge.textContent = unread;
       badge.style.display = "flex";
     } else {
       badge.style.display = "none";
@@ -3112,6 +3122,8 @@ function toggleNotifDropdown() {
   if (!dd) return;
   dd.classList.toggle("show");
   if (dd.classList.contains("show")) {
+    setNotifLastSeen();
+    updateNotifBadge();
     var list = document.getElementById("notifList");
     if (!list) return;
     try {
