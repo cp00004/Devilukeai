@@ -469,7 +469,7 @@ a { color: var(--accent); text-decoration: none; }
 }
 
 .chat-sidebar {
-  width: 320px;
+  width: 240px;
   background: var(--bg-secondary);
   border-right: 1px solid var(--border);
   display: flex;
@@ -568,6 +568,7 @@ a { color: var(--accent); text-decoration: none; }
   display: flex;
   flex-direction: column;
   background: var(--bg-primary);
+  padding-right: 48px;
 }
 
 .chat-header {
@@ -1509,8 +1510,11 @@ a { color: var(--accent); text-decoration: none; }
 
 /* ─── Chat Tab Bar ─── */
 .chat-tab-bar {
+  position: fixed;
+  right: 0;
+  top: 64px;
   width: 48px;
-  min-width: 48px;
+  height: calc(100vh - 64px);
   background: var(--bg-secondary);
   border-left: 1px solid var(--border);
   display: flex;
@@ -1519,6 +1523,7 @@ a { color: var(--accent); text-decoration: none; }
   gap: 8px;
   padding: 12px 0;
   flex-shrink: 0;
+  z-index: 90;
 }
 .chat-tab-btn {
   width: 36px; height: 36px; background: transparent;
@@ -2077,7 +2082,7 @@ a { color: var(--accent); text-decoration: none; }
     cursor: pointer; position: relative; z-index: 10;
   }
   .chat-sidebar.expanded { height: auto; flex-direction: column; align-items: stretch; }
-  .chat-main { flex: 1; min-height: 0; }
+  .chat-main { flex: 1; min-height: 0; padding-right: 0; }
   .chat-messages { padding: 12px !important; }
   .message { max-width: 92% !important; }
   .chat-input-area { padding: 10px 12px !important; }
