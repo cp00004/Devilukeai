@@ -1443,8 +1443,14 @@ function updateChatHeader() {
   }
 }
 
+function escapeHtml(text) {
+  var d = document.createElement('div');
+  d.appendChild(document.createTextNode(text));
+  return d.innerHTML;
+}
+
 function formatBotText(text) {
-  return text.replace(/\*([^*]+)\*/g,'<span style="color:var(--accent)">$1</span>');
+  return escapeHtml(text).replace(/\*([^*]+)\*/g,'<span style="color:var(--accent)">$1</span>');
 }
 function renderMessages() {
   const c=document.getElementById("chatMessages"); if(!c)return;
@@ -1454,7 +1460,7 @@ function renderMessages() {
   c.innerHTML=messages.map((m,i)=>{
     if(m.role==="typing")return `<div class="message bot"><div class="msg-avatar" style="background:${bg}">${ma}</div><div class="msg-bubble"><div class="typing-indicator"><span></span><span></span><span></span></div></div></div>`;
     const u=m.role==="user";
-    const txt=u?m.text:formatBotText(m.text) + (m._typing ? '<span class="typing-cursor">|</span>' : '');
+    const txt=u?escapeHtml(m.text):formatBotText(m.text) + (m._typing ? '<span class="typing-cursor">|</span>' : '');
     const actions=!u && !m._typing ? `<div class="msg-actions"><button class="msg-action-btn" onclick="regenerateLast()" title="Regenerate">Regenerate</button><button class="msg-action-btn" onclick="continueChat()" title="Continue">Continue</button></div>`:'';
     const uname=u?(currentUser?.name||"You"):(ch?.name||"Bot");
     return `<div class="message ${u?"user":"bot"}"><div class="msg-label">${uname}</div>${u?"":`<div class="msg-avatar" style="background:${bg}">${ma}</div>`}<div><div class="msg-bubble">${txt}</div>${actions}<div class="msg-time">${m.time||""}</div></div></div>`;
@@ -1585,16 +1591,23 @@ function startTypingAnimation(fullText) {
   var pos = 0;
   var speed = fullText.length > 500 ? 15 : 30;
   _typingInterval = setInterval(function() {
-    if (pos >= fullText.length) {
+    try {
+      if (pos >= fullText.length) {
+        clearInterval(_typingInterval);
+        _typingInterval = null;
+        if (messages[idx]) messages[idx]._typing = false;
+        renderMessages(); saveCurrentChat(); renderChatHistory(); renderCharacters();
+        return;
+      }
+      pos += 1;
+      if (messages[idx]) messages[idx].text = fullText.slice(0, pos);
+      renderMessages();
+    } catch(e) {
       clearInterval(_typingInterval);
       _typingInterval = null;
-      if (messages[idx]) messages[idx]._typing = false;
+      if (messages[idx]) { messages[idx]._typing = false; messages[idx].text = fullText; }
       renderMessages(); saveCurrentChat(); renderChatHistory(); renderCharacters();
-      return;
     }
-    pos += 1;
-    if (messages[idx]) messages[idx].text = fullText.slice(0, pos);
-    renderMessages();
   }, speed);
 }
 
