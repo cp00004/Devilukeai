@@ -1454,8 +1454,8 @@ function renderMessages() {
   c.innerHTML=messages.map((m,i)=>{
     if(m.role==="typing")return `<div class="message bot"><div class="msg-avatar" style="background:${bg}">${ma}</div><div class="msg-bubble"><div class="typing-indicator"><span></span><span></span><span></span></div></div></div>`;
     const u=m.role==="user";
-    const txt=u?m.text:formatBotText(m.text);
-    const actions=!u?`<div class="msg-actions"><button class="msg-action-btn" onclick="regenerateLast()" title="Regenerate">Regenerate</button><button class="msg-action-btn" onclick="continueChat()" title="Continue">Continue</button></div>`:'';
+    const txt=u?m.text:formatBotText(m.text) + (m._typing ? '<span class="typing-cursor">|</span>' : '');
+    const actions=!u && !m._typing ? `<div class="msg-actions"><button class="msg-action-btn" onclick="regenerateLast()" title="Regenerate">Regenerate</button><button class="msg-action-btn" onclick="continueChat()" title="Continue">Continue</button></div>`:'';
     const uname=u?(currentUser?.name||"You"):(ch?.name||"Bot");
     return `<div class="message ${u?"user":"bot"}"><div class="msg-label">${uname}</div>${u?"":`<div class="msg-avatar" style="background:${bg}">${ma}</div>`}<div><div class="msg-bubble">${txt}</div>${actions}<div class="msg-time">${m.time||""}</div></div></div>`;
   }).join("");c.scrollTop=c.scrollHeight;
@@ -1574,6 +1574,30 @@ function saveLocalComment(botName, commenter, text) {
   } catch(e) { console.warn("Failed to save comment locally:", e); }
 }
 
+var _typingInterval = null;
+
+function startTypingAnimation(fullText) {
+  if (_typingInterval) { clearInterval(_typingInterval); _typingInterval = null; }
+  messages = messages.filter(function(m) { return m.role !== "typing"; });
+  var idx = messages.length;
+  messages.push({ role: "bot", text: "", ts: Date.now(), _typing: true });
+  renderMessages(); saveCurrentChat();
+  var pos = 0;
+  var speed = fullText.length > 500 ? 6 : 12;
+  _typingInterval = setInterval(function() {
+    if (pos >= fullText.length) {
+      clearInterval(_typingInterval);
+      _typingInterval = null;
+      if (messages[idx]) messages[idx]._typing = false;
+      renderMessages(); saveCurrentChat(); renderChatHistory(); renderCharacters();
+      return;
+    }
+    pos += 1;
+    if (messages[idx]) messages[idx].text = fullText.slice(0, pos);
+    renderMessages();
+  }, speed);
+}
+
 function sendMessage() {
   const i=document.getElementById("chatInput"); if(!i||!i.value.trim())return;
   incrementTodayMessages();
@@ -1584,9 +1608,7 @@ function sendMessage() {
   saveCurrentChat();
   const ch=getCharacter(currentCharId);
   getGroqResponse(messages,ch).then(reply=>{
-    messages=messages.filter(m=>m.role!=="typing");
-    messages.push({role:"bot",text:reply||"*They smile warmly, waiting for you to continue.*",ts:Date.now()});
-    renderMessages();saveCurrentChat();renderChatHistory();renderCharacters();
+    startTypingAnimation(reply||"*They smile warmly, waiting for you to continue.*");
   }).catch(err=>{
     messages=messages.filter(m=>m.role!=="typing");
     messages.push({role:"bot",text:`*Error: ${err.message}*`,ts:Date.now()});
@@ -1601,9 +1623,7 @@ function regenerateLast() {
   messages.push({role:"typing"});renderMessages();
   const ch=getCharacter(currentCharId);
   getGroqResponse(messages,ch).then(reply=>{
-    messages=messages.filter(m=>m.role!=="typing");
-    messages.push({role:"bot",text:reply||"*They smile warmly, waiting for you to continue.*",ts:Date.now()});
-    renderMessages();saveCurrentChat();renderChatHistory();renderCharacters();
+    startTypingAnimation(reply||"*They smile warmly, waiting for you to continue.*");
   }).catch(err=>{
     messages=messages.filter(m=>m.role!=="typing");
     messages.push({role:"bot",text:`*Error: ${err.message}*`,ts:Date.now()});
@@ -1615,9 +1635,7 @@ function continueChat() {
   messages.push({role:"typing"});renderMessages();
   const ch=getCharacter(currentCharId);
   getGroqResponse(messages,ch).then(reply=>{
-    messages=messages.filter(m=>m.role!=="typing");
-    messages.push({role:"bot",text:reply||"*They smile warmly, waiting for you to continue.*",ts:Date.now()});
-    renderMessages();saveCurrentChat();renderChatHistory();renderCharacters();
+    startTypingAnimation(reply||"*They smile warmly, waiting for you to continue.*");
   }).catch(err=>{
     messages=messages.filter(m=>m.role!=="typing");
     messages.push({role:"bot",text:`*Error: ${err.message}*`,ts:Date.now()});
