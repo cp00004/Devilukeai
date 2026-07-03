@@ -1583,7 +1583,7 @@ function startTypingAnimation(fullText) {
   messages.push({ role: "bot", text: "", ts: Date.now(), _typing: true });
   renderMessages(); saveCurrentChat();
   var pos = 0;
-  var speed = fullText.length > 500 ? 6 : 12;
+  var speed = fullText.length > 500 ? 15 : 30;
   _typingInterval = setInterval(function() {
     if (pos >= fullText.length) {
       clearInterval(_typingInterval);
