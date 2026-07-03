@@ -1616,6 +1616,7 @@ function startTypingAnimation(fullText) {
       }
       pos += 1;
       cursor.parentNode.insertBefore(document.createTextNode(fullText.charAt(pos - 1)), cursor);
+      if (navigator.vibrate && window.innerWidth <= 768) navigator.vibrate(5);
     } catch(e) {
       clearInterval(_typingInterval);
       _typingInterval = null;
